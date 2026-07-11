@@ -5,6 +5,7 @@
 .codex/
 .agents/
 .planning/
+.worktrees/
 CLAUDE.md
 AGENTS.md
 STATE.md
