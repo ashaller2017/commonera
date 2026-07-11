@@ -30,8 +30,6 @@ export const Route = createFileRoute('/share/$slug')({
       meta: [
         { title },
         { name: 'description', content: description },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: "B'Mitzvah 2.0" },
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:image', content: image },

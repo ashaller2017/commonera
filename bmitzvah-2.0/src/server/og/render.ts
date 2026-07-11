@@ -4,6 +4,11 @@ import type { TemplateKey } from '@/lib/content/types'
 import { FRAUNCES_600, NUNITO_400, NUNITO_700 } from '@/server/og/fonts'
 import type { SharedCard } from '@/utils/share.server'
 
+// Brand teal (sRGB conversion of DESIGN.md's --primary oklch(0.52 0.11 180)),
+// used for the site-wide default OG card so it reads as "the brand" rather
+// than any one journey template.
+const BRAND_PRIMARY = '#007d6b'
+
 // Per-template background hex (sRGB conversions of the DESIGN.md OKLCH base
 // colors). satori/resvg render hex reliably; oklch() is not safe across both.
 export const OG_TEMPLATE_COLORS: Record<TemplateKey, string> = {
@@ -112,6 +117,70 @@ export async function renderShareCardPng(card: SharedCard): Promise<Uint8Array> 
   // satori types expect a React node; the hyperscript shape is structurally
   // compatible, so cast at the boundary.
   const svg = await satori(OgCard(card) as unknown as Parameters<typeof satori>[0], {
+    width: 1200,
+    height: 630,
+    fonts: FONTS,
+  })
+  return new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } }).render().asPng()
+}
+
+// The milestone-path motif (dots joined by a line) echoes the "done" markers
+// on the kid dashboard, so the site's own social card carries the same visual
+// language as the product instead of being a bare wordmark.
+function dot(filled: boolean): Node {
+  return box(
+    {
+      width: '22px',
+      height: '22px',
+      borderRadius: '999px',
+      backgroundColor: filled ? 'white' : 'rgba(255,255,255,0.35)',
+    },
+    '',
+  )
+}
+
+function connector(): Node {
+  return box({ width: '40px', height: '3px', backgroundColor: 'rgba(255,255,255,0.5)' }, '')
+}
+
+function DefaultCard(): Node {
+  return box(
+    {
+      width: '1200px',
+      height: '630px',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      padding: '88px',
+      backgroundColor: BRAND_PRIMARY,
+      color: 'white',
+      fontFamily: 'Nunito Sans',
+    },
+    [
+      box({ display: 'flex', alignItems: 'center', gap: '0px', marginBottom: '32px' }, [
+        dot(true),
+        connector(),
+        dot(true),
+        connector(),
+        dot(false),
+      ]),
+      box(
+        {
+          fontFamily: 'Fraunces',
+          fontWeight: 600,
+          fontSize: '104px',
+          lineHeight: 1.02,
+          letterSpacing: '-1px',
+        },
+        "B'Mitzvah 2.0",
+      ),
+      box({ fontSize: '38px', marginTop: '22px', opacity: 0.92 }, "Your B'Mitzvah. Your way."),
+    ],
+  )
+}
+
+export async function renderDefaultCardPng(): Promise<Uint8Array> {
+  const svg = await satori(DefaultCard() as unknown as Parameters<typeof satori>[0], {
     width: 1200,
     height: 630,
     fonts: FONTS,

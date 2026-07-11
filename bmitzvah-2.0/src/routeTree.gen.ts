@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoriesRouteImport } from './routes/stories'
+import { Route as SiteDotwebmanifestRouteImport } from './routes/site[.]webmanifest'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,6 +18,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ShareSlugRouteImport } from './routes/share.$slug'
+import { Route as OgDefaultRouteImport } from './routes/og.default'
 import { Route as OgSlugRouteImport } from './routes/og.$slug'
 import { Route as AuthedProvidersRouteImport } from './routes/_authed/providers'
 import { Route as AuthedParentRouteImport } from './routes/_authed/parent'
@@ -48,6 +50,11 @@ import { Route as AuthedAdminAccountsParentIdRouteImport } from './routes/_authe
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
   path: '/stories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SiteDotwebmanifestRoute = SiteDotwebmanifestRouteImport.update({
+  id: '/site.webmanifest',
+  path: '/site.webmanifest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -82,6 +89,11 @@ const IndexRoute = IndexRouteImport.update({
 const ShareSlugRoute = ShareSlugRouteImport.update({
   id: '/share/$slug',
   path: '/share/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgDefaultRoute = OgDefaultRouteImport.update({
+  id: '/og/default',
+  path: '/og/default',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OgSlugRoute = OgSlugRouteImport.update({
@@ -233,12 +245,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/site.webmanifest': typeof SiteDotwebmanifestRoute
   '/stories': typeof StoriesRoute
   '/admin': typeof AuthedAdminRouteWithChildren
   '/kid': typeof AuthedKidRouteWithChildren
   '/parent': typeof AuthedParentRouteWithChildren
   '/providers': typeof AuthedProvidersRoute
   '/og/$slug': typeof OgSlugRoute
+  '/og/default': typeof OgDefaultRoute
   '/share/$slug': typeof ShareSlugRoute
   '/admin/accounts': typeof AuthedAdminAccountsRouteWithChildren
   '/admin/admins': typeof AuthedAdminAdminsRoute
@@ -269,9 +283,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/site.webmanifest': typeof SiteDotwebmanifestRoute
   '/stories': typeof StoriesRoute
   '/providers': typeof AuthedProvidersRoute
   '/og/$slug': typeof OgSlugRoute
+  '/og/default': typeof OgDefaultRoute
   '/share/$slug': typeof ShareSlugRoute
   '/admin/admins': typeof AuthedAdminAdminsRoute
   '/kid/card': typeof AuthedKidCardRoute
@@ -302,12 +318,14 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/site.webmanifest': typeof SiteDotwebmanifestRoute
   '/stories': typeof StoriesRoute
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/kid': typeof AuthedKidRouteWithChildren
   '/_authed/parent': typeof AuthedParentRouteWithChildren
   '/_authed/providers': typeof AuthedProvidersRoute
   '/og/$slug': typeof OgSlugRoute
+  '/og/default': typeof OgDefaultRoute
   '/share/$slug': typeof ShareSlugRoute
   '/_authed/admin/accounts': typeof AuthedAdminAccountsRouteWithChildren
   '/_authed/admin/admins': typeof AuthedAdminAdminsRoute
@@ -340,12 +358,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/site.webmanifest'
     | '/stories'
     | '/admin'
     | '/kid'
     | '/parent'
     | '/providers'
     | '/og/$slug'
+    | '/og/default'
     | '/share/$slug'
     | '/admin/accounts'
     | '/admin/admins'
@@ -376,9 +396,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/site.webmanifest'
     | '/stories'
     | '/providers'
     | '/og/$slug'
+    | '/og/default'
     | '/share/$slug'
     | '/admin/admins'
     | '/kid/card'
@@ -408,12 +430,14 @@ export interface FileRouteTypes {
     | '/login'
     | '/reset-password'
     | '/signup'
+    | '/site.webmanifest'
     | '/stories'
     | '/_authed/admin'
     | '/_authed/kid'
     | '/_authed/parent'
     | '/_authed/providers'
     | '/og/$slug'
+    | '/og/default'
     | '/share/$slug'
     | '/_authed/admin/accounts'
     | '/_authed/admin/admins'
@@ -446,8 +470,10 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  SiteDotwebmanifestRoute: typeof SiteDotwebmanifestRoute
   StoriesRoute: typeof StoriesRoute
   OgSlugRoute: typeof OgSlugRoute
+  OgDefaultRoute: typeof OgDefaultRoute
   ShareSlugRoute: typeof ShareSlugRoute
 }
 
@@ -458,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories'
       preLoaderRoute: typeof StoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/site.webmanifest': {
+      id: '/site.webmanifest'
+      path: '/site.webmanifest'
+      fullPath: '/site.webmanifest'
+      preLoaderRoute: typeof SiteDotwebmanifestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -507,6 +540,13 @@ declare module '@tanstack/react-router' {
       path: '/share/$slug'
       fullPath: '/share/$slug'
       preLoaderRoute: typeof ShareSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og/default': {
+      id: '/og/default'
+      path: '/og/default'
+      fullPath: '/og/default'
+      preLoaderRoute: typeof OgDefaultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/og/$slug': {
@@ -817,8 +857,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  SiteDotwebmanifestRoute: SiteDotwebmanifestRoute,
   StoriesRoute: StoriesRoute,
   OgSlugRoute: OgSlugRoute,
+  OgDefaultRoute: OgDefaultRoute,
   ShareSlugRoute: ShareSlugRoute,
 }
 export const routeTree = rootRouteImport
