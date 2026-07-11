@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowLeft, Check, Circle } from 'lucide-react'
+import { ArrowLeft, Check, Circle, Heart } from 'lucide-react'
 import { motion, type Variants } from 'motion/react'
 import { useState } from 'react'
 import { z } from 'zod'
 import { useAppForm } from '@/components/form'
+import {
+  type FavoritedGuide,
+  GuideHeartChips,
+  JourneyCompleteBadge,
+  kidFavoritedGuides,
+} from '@/components/kid-status'
 import { TemplateChip } from '@/components/template-chip'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,19 +26,23 @@ import { journeyProgress } from '@/lib/journey/progress'
 import { cn } from '@/lib/utils'
 import { resetChildPasswordFn } from '@/utils/auth.functions'
 import type { ResetChildPasswordError } from '@/utils/auth.server'
-import { fetchKidJourneyFn, fetchKidsFn } from '@/utils/journeys.functions'
+import { fetchProvidersFn } from '@/utils/content.functions'
+import { fetchFavoritesFn, fetchKidJourneyFn, fetchKidsFn } from '@/utils/journeys.functions'
 import type { CelebrationView, JourneyView } from '@/utils/journeys.server'
 
 type KidRef = { readonly id: string; readonly displayName: string }
 
 export const Route = createFileRoute('/_authed/parent/kids/$childId')({
   loader: async ({ params }) => {
-    const [journey, kids] = await Promise.all([
+    const [journey, kids, favorites, providers] = await Promise.all([
       fetchKidJourneyFn({ data: { childId: params.childId } }),
       fetchKidsFn(),
+      fetchFavoritesFn(),
+      fetchProvidersFn(),
     ])
     const kid = kids.find((k) => k.id === params.childId) ?? null
-    return { journey, kid }
+    const guides = kidFavoritedGuides(params.childId, favorites, providers)
+    return { journey, kid, guides }
   },
   component: KidJourneyPage,
 })
@@ -50,10 +60,10 @@ const fadeUp: Variants = {
 }
 
 function KidJourneyPage() {
-  const { journey, kid } = Route.useLoaderData()
+  const { journey, kid, guides } = Route.useLoaderData()
   if (!kid) return <KidNotFound />
   if (!journey) return <NoJourney kid={kid} />
-  return <ReadOnlyJourney journey={journey} kid={kid} />
+  return <ReadOnlyJourney journey={journey} kid={kid} guides={guides} />
 }
 
 function KidNotFound() {
@@ -123,10 +133,19 @@ function NoJourney({ kid }: { kid: KidRef }) {
   )
 }
 
-function ReadOnlyJourney({ journey, kid }: { journey: JourneyView; kid: KidRef }) {
+function ReadOnlyJourney({
+  journey,
+  kid,
+  guides,
+}: {
+  journey: JourneyView
+  kid: KidRef
+  guides: readonly FavoritedGuide[]
+}) {
   const firstName = kid.displayName.split(' ')[0] || kid.displayName
   const palette = TEMPLATE_PALETTE[journey.template]
   const progress = journeyProgress(journey.milestones.map((m) => m.status))
+  const complete = progress.total > 0 && progress.done === progress.total
   const celebration = journey.celebration
   const hasCelebration =
     celebration !== null &&
@@ -148,7 +167,10 @@ function ReadOnlyJourney({ journey, kid }: { journey: JourneyView; kid: KidRef }
         variants={fadeUp}
       >
         <div className="flex flex-col gap-4">
-          <TemplateChip template={journey.template} variant="solid" />
+          <div className="flex flex-wrap items-center gap-3">
+            <TemplateChip template={journey.template} variant="solid" />
+            {complete ? <JourneyCompleteBadge /> : null}
+          </div>
           <h1 className={cn('font-display text-3xl font-semibold sm:text-4xl', palette.softText)}>
             {journey.name}
           </h1>
@@ -179,6 +201,29 @@ function ReadOnlyJourney({ journey, kid }: { journey: JourneyView; kid: KidRef }
         <MilestoneList journey={journey} />
         <ActivityList journey={journey} firstName={firstName} />
       </motion.div>
+
+      {guides.length > 0 ? (
+        <motion.section
+          className="flex flex-col gap-4 rounded-3xl border bg-card p-6 sm:p-8"
+          variants={fadeUp}
+        >
+          <div className="flex items-center gap-2">
+            <Heart className="size-5 fill-current text-accent-deep" aria-hidden />
+            <h2 className="font-display text-xl font-semibold">
+              Guides {firstName} is interested in
+            </h2>
+          </div>
+          <GuideHeartChips guides={guides} />
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-fit"
+            render={<Link to="/parent/guides" />}
+          >
+            Reach out on their behalf
+          </Button>
+        </motion.section>
+      ) : null}
 
       {hasCelebration ? (
         <motion.div variants={fadeUp}>

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Heart } from 'lucide-react'
+import { GuideHeartChips, kidFavoritedGuides } from '@/components/kid-status'
 import { LockedDirectory } from '@/components/locked-directory'
 import { type KidFavoriteRow, ProviderDirectory } from '@/components/provider-directory'
 import type { Provider } from '@/lib/content/types'
@@ -48,15 +49,8 @@ function KidInterestSummary({
   favorites: readonly KidFavoriteRow[]
   providers: readonly Provider[]
 }) {
-  const nameByKey = new Map(providers.map((p) => [p.key, p.name]))
   const byKid = kids
-    .map((kid) => ({
-      kid,
-      guides: favorites
-        .filter((f) => f.childId === kid.id)
-        .map((f) => nameByKey.get(f.providerKey))
-        .filter((name): name is string => Boolean(name)),
-    }))
+    .map((kid) => ({ kid, guides: kidFavoritedGuides(kid.id, favorites, providers) }))
     .filter((row) => row.guides.length > 0)
 
   return (
@@ -75,17 +69,7 @@ function KidInterestSummary({
           {byKid.map(({ kid, guides }) => (
             <li key={kid.id} className="flex flex-col gap-2">
               <p className="text-sm font-bold">{kid.displayName} is interested in</p>
-              <div className="flex flex-wrap gap-2">
-                {guides.map((guide) => (
-                  <span
-                    key={guide}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-sm font-bold text-secondary-foreground"
-                  >
-                    <Heart className="size-3.5 fill-current text-accent-deep" aria-hidden />
-                    {guide}
-                  </span>
-                ))}
-              </div>
+              <GuideHeartChips guides={guides} />
             </li>
           ))}
         </ul>

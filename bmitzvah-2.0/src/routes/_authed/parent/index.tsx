@@ -1,8 +1,15 @@
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
-import { Check, Lock, Plus } from 'lucide-react'
+import { ArrowRight, Check, Heart, Lock, Plus } from 'lucide-react'
 import { motion, type Variants } from 'motion/react'
 import { useState } from 'react'
+import {
+  type FavoritedGuide,
+  GuideHeartChips,
+  JourneyCompleteBadge,
+  kidFavoritedGuides,
+} from '@/components/kid-status'
+import type { KidFavoriteRow } from '@/components/provider-directory'
 import { TemplateChip } from '@/components/template-chip'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -19,14 +26,23 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { normalizeUsername, USERNAME_PATTERN } from '@/lib/auth/kid-credentials'
 import { TEMPLATE_PALETTE } from '@/lib/content/palette'
+import type { Provider } from '@/lib/content/types'
 import { cn } from '@/lib/utils'
 import { registerKidFn } from '@/utils/auth.functions'
 import type { RegisterKidError } from '@/utils/auth.server'
-import { fetchKidsFn } from '@/utils/journeys.functions'
+import { fetchProvidersFn } from '@/utils/content.functions'
+import { fetchFavoritesFn, fetchKidsFn } from '@/utils/journeys.functions'
 import type { KidSummary } from '@/utils/journeys.server'
 
 export const Route = createFileRoute('/_authed/parent/')({
-  loader: () => fetchKidsFn(),
+  loader: async () => {
+    const [kids, favorites, providers] = await Promise.all([
+      fetchKidsFn(),
+      fetchFavoritesFn(),
+      fetchProvidersFn(),
+    ])
+    return { kids, favorites, providers }
+  },
   component: ParentDashboard,
 })
 
@@ -48,7 +64,7 @@ const rowStagger: Variants = {
 }
 
 function ParentDashboard() {
-  const kids = Route.useLoaderData()
+  const { kids, favorites, providers } = Route.useLoaderData()
   const hasKids = kids.length > 0
   return (
     <motion.div
@@ -70,7 +86,7 @@ function ParentDashboard() {
           <motion.div variants={fadeUp}>
             <StatOverview kids={kids} />
           </motion.div>
-          <KidsList kids={kids} />
+          <KidsList kids={kids} favorites={favorites} providers={providers} />
         </>
       ) : (
         <motion.div variants={fadeUp}>
@@ -294,7 +310,15 @@ function OnboardingPanel() {
   )
 }
 
-function KidsList({ kids }: { kids: readonly KidSummary[] }) {
+function KidsList({
+  kids,
+  favorites,
+  providers,
+}: {
+  kids: readonly KidSummary[]
+  favorites: readonly KidFavoriteRow[]
+  providers: readonly Provider[]
+}) {
   return (
     <motion.section className="flex flex-col gap-5" variants={fadeUp}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -303,7 +327,7 @@ function KidsList({ kids }: { kids: readonly KidSummary[] }) {
       </div>
       <motion.div className="flex flex-col gap-4" variants={rowStagger}>
         {kids.map((kid) => (
-          <KidRow key={kid.id} kid={kid} />
+          <KidRow key={kid.id} kid={kid} favorites={favorites} providers={providers} />
         ))}
       </motion.div>
     </motion.section>
@@ -312,9 +336,20 @@ function KidsList({ kids }: { kids: readonly KidSummary[] }) {
 
 type KidJourneyRow = NonNullable<KidSummary['journey']>
 
-function KidRow({ kid }: { kid: KidSummary }) {
+function KidRow({
+  kid,
+  favorites,
+  providers,
+}: {
+  kid: KidSummary
+  favorites: readonly KidFavoriteRow[]
+  providers: readonly Provider[]
+}) {
   const initial = kid.displayName.trim().charAt(0).toUpperCase() || '?'
   const palette = kid.journey ? TEMPLATE_PALETTE[kid.journey.template] : null
+  const complete = kid.journey
+    ? kid.journey.milestonesTotal > 0 && kid.journey.milestonesDone === kid.journey.milestonesTotal
+    : false
   return (
     <motion.div variants={fadeUp} whileHover={{ y: -2 }} transition={{ duration: 0.2, ease: EASE }}>
       <Card className="gap-5 p-6 sm:p-7">
@@ -336,9 +371,19 @@ function KidRow({ kid }: { kid: KidSummary }) {
                 @{kid.username}
               </span>
             ) : null}
+            {complete ? <JourneyCompleteBadge /> : null}
           </div>
         </div>
-        {kid.journey ? <KidJourneySummary kidId={kid.id} journey={kid.journey} /> : <KidNudge />}
+        {kid.journey ? (
+          <KidJourneySummary
+            kid={kid}
+            journey={kid.journey}
+            complete={complete}
+            guides={kidFavoritedGuides(kid.id, favorites, providers)}
+          />
+        ) : (
+          <KidNudge />
+        )}
       </Card>
     </motion.div>
   )
@@ -352,7 +397,18 @@ function KidNudge() {
   )
 }
 
-function KidJourneySummary({ kidId, journey }: { kidId: string; journey: KidJourneyRow }) {
+function KidJourneySummary({
+  kid,
+  journey,
+  complete,
+  guides,
+}: {
+  kid: KidSummary
+  journey: KidJourneyRow
+  complete: boolean
+  guides: readonly FavoritedGuide[]
+}) {
+  const firstName = kid.displayName.split(' ')[0] || kid.displayName
   const total = journey.milestonesTotal
   const done = journey.milestonesDone
   const percent = total === 0 ? 0 : Math.round((done / total) * 100)
@@ -385,11 +441,40 @@ function KidJourneySummary({ kidId, journey }: { kidId: string; journey: KidJour
       <p className="text-sm text-muted-foreground">
         {journey.activitiesDone} done, {journey.activitiesPlanned} planned in their activity list.
       </p>
+
+      {guides.length > 0 ? (
+        <div className="flex flex-col gap-3 rounded-2xl bg-secondary/50 p-4">
+          <div className="flex items-center gap-1.5">
+            <Heart className="size-4 fill-current text-accent-deep" aria-hidden />
+            <p className="text-sm font-bold">{firstName} is interested in a guide</p>
+          </div>
+          <GuideHeartChips guides={guides} />
+          <Link
+            to="/parent/guides"
+            className="inline-flex w-fit items-center gap-1 text-sm font-bold text-primary underline-offset-4 hover:underline"
+          >
+            Reach out on their behalf
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+        </div>
+      ) : complete ? (
+        <p className="text-sm text-muted-foreground">
+          Their{' '}
+          <Link
+            to="/parent/guides"
+            className="font-bold text-primary underline-offset-4 hover:underline"
+          >
+            guide directory
+          </Link>{' '}
+          is open. No picks from {firstName} yet.
+        </p>
+      ) : null}
+
       <div>
         <Button
           variant="outline"
           size="sm"
-          render={<Link to="/parent/kids/$childId" params={{ childId: kidId }} />}
+          render={<Link to="/parent/kids/$childId" params={{ childId: kid.id }} />}
         >
           See the plan
         </Button>

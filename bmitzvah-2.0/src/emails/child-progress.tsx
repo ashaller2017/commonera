@@ -1,4 +1,4 @@
-import { Section } from '@react-email/components'
+import { Section } from 'react-email'
 import { BrandButton, EmailHeading, EmailLayout, EmailText } from '@/emails/components'
 
 export type ChildProgressEmailProps = {

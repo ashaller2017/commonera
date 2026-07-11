@@ -1,5 +1,5 @@
-import { render } from '@react-email/components'
 import type { ReactElement } from 'react'
+import { render } from 'react-email'
 import { Resend } from 'resend'
 import { ChildProgressEmail } from '@/emails/child-progress'
 import { PasswordResetEmail } from '@/emails/password-reset'

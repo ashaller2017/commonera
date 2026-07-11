@@ -27,6 +27,7 @@ pnpm check          # biome check (lint + format), the gate
 pnpm typecheck      # tsc --noEmit
 pnpm test           # vitest run
 pnpm test:watch     # vitest
+pnpm email:dev      # react-email preview server for src/emails/*
 pnpm db:types       # supabase gen types typescript --local > src/types/database.ts
 pnpm db:migrate     # supabase migration up (apply pending migrations)
 pnpm db:reset       # supabase db reset: rebuild local db from migrations + seed.sql
@@ -144,6 +145,21 @@ Forms use **TanStack Form** with its composition API, wired to the basecn/base-u
 - Server functions take a single `data` argument. Validate it with `.validator(Schema)` using Zod. Untrusted input is untyped until Zod has seen it.
 - Split by responsibility: thin `createServerFn` wrapper in `*.functions.ts`, real logic and DB access in `*.server.ts`. The wrapper validates, authorizes, and delegates.
 - Return typed error unions for expected failures (see below). Do not leak raw Postgres errors or stack traces across the boundary.
+
+## Email
+
+Transactional email runs through **Resend** with **React Email** templates, server-side only.
+
+- **One sender:** `src/utils/email.server.tsx` wraps Resend and exposes typed helpers (`sendWelcomeEmail`, `sendPasswordResetEmail`, `sendChildMilestoneEmail`, `sendChildFinishedEmail`), rendering a React Email component to HTML + text via `render()`. `deliver()` **never throws**, so callers `await` it without guarding: a failed email must never fail the action that triggered it (signup, marking a milestone done).
+- **Local dev needs nothing external.** With no `RESEND_API_KEY`, emails are rendered and logged to the server console (with any link) instead of sent. `RESEND_API_KEY`, `EMAIL_FROM` (a verified-domain sender in prod), and `SITE_URL` (absolute links inside emails) live in `env.server.ts`, all optional in dev.
+- **Templates** are React components in `src/emails/` on a shared `components.tsx` layout, each exporting `PreviewProps` (`pnpm email:dev` runs the live preview). Inline-styled and brand-matched by hand: email clients don't support oklch or web fonts, so use the hex/serif fallbacks in `components.tsx`, not the app tokens.
+- **Never import `email.server.tsx` or `src/emails/*` from client code** (it reads secrets and pulls in Resend). Server-only; it is `.server.tsx` because it holds JSX.
+
+Flows:
+
+- **Parent password reset** is self-serve: `/forgot-password` → `admin.generateLink({ type: 'recovery' })` → a branded link to `/reset-password?token_hash=…` → `verifyOtp({ token_hash, type: 'recovery' })` + `updateUser({ password })` (the user changes their own password, no service role). The request path is enumeration-safe and refuses children.
+- **A parent resets their child's password** from the kid's page via `resetChildPassword`: a parent-owns-child RLS check, then the service-role `updateUserById`. **Children never reset a password** anywhere (synthetic emails, no reset UI).
+- **Progress emails** to parents fire only on a real milestone →`done` transition (and journey-finished). The parent's address comes from the `parent_notification_email()` SECURITY DEFINER RPC, so a child never needs `auth.users` access and no service role is used.
 
 ## TypeScript conventions
 

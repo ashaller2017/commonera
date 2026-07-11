@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
   Body,
   Button,
@@ -9,8 +10,7 @@ import {
   Preview,
   Section,
   Text,
-} from '@react-email/components'
-import type { ReactNode } from 'react'
+} from 'react-email'
 
 // Email-safe hex approximations of the app's brand tokens (email clients don't support oklch).
 export const brand = {
