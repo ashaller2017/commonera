@@ -203,25 +203,50 @@ export async function requestPasswordReset(email: string): Promise<void> {
   await sendPasswordResetEmail(email, resetUrl, profile.display_name)
 }
 
-export type ResetPasswordError = 'invalid-or-expired' | 'update-failed'
+export type ResetPasswordError =
+  | 'invalid-or-expired'
+  | 'same-password'
+  | 'weak-password'
+  | 'update-failed'
 
 // Complete a reset: verify the one-time recovery token (which establishes a recovery session on
 // the RLS-scoped client), then set the new password as that user. No service role: the user is
 // changing their own password.
+//
+// The recovery token is single-use, so if the first submit verified it but the new password was
+// rejected (too weak, same as the old one), a naive re-verify would fail with "invalid link".
+// Instead we reuse the recovery session established on that first submit, so the user can fix the
+// password and retry without requesting a fresh link.
 export async function resetPasswordWithToken(
   supabase: Supabase,
   tokenHash: string,
   password: string,
 ): Promise<Result<null, ResetPasswordError>> {
-  const { error: verifyError } = await supabase.auth.verifyOtp({
-    token_hash: tokenHash,
-    type: 'recovery',
-  })
-  if (verifyError) return err('invalid-or-expired')
+  const {
+    data: { user: recovering },
+  } = await supabase.auth.getUser()
+  if (!recovering) {
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'recovery',
+    })
+    if (verifyError) return err('invalid-or-expired')
+  }
 
   const { error: updateError } = await supabase.auth.updateUser({ password })
   if (updateError) {
     console.error('resetPasswordWithToken: update failed', updateError)
+    const message = updateError.message?.toLowerCase() ?? ''
+    if (updateError.code === 'same_password' || message.includes('different from the old')) {
+      return err('same-password')
+    }
+    if (
+      updateError.code === 'weak_password' ||
+      message.includes('weak') ||
+      message.includes('should be at least')
+    ) {
+      return err('weak-password')
+    }
     return err('update-failed')
   }
   return ok(null)

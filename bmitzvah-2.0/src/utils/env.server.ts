@@ -9,7 +9,7 @@ const EnvSchema = z.object({
   RESEND_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().min(1).default("B'Mitzvah Coach <onboarding@resend.dev>"),
   // Absolute base URL used to build links inside emails (reset password, etc.).
-  SITE_URL: z.url().default('http://127.0.0.1:3000'),
+  SITE_URL: z.url().default('http://localhost:3000'),
 })
 
 export const env = EnvSchema.parse({

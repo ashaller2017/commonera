@@ -18,6 +18,8 @@ export const Route = createFileRoute('/reset-password')({
 
 const RESET_ERROR_COPY: Record<ResetPasswordError, string> = {
   'invalid-or-expired': 'This reset link is invalid or has expired. Request a new one.',
+  'same-password': 'Your new password needs to be different from your old one.',
+  'weak-password': 'That password is too weak. Choose a longer one.',
   'update-failed': 'Something went wrong saving your new password. Try again.',
 }
 
