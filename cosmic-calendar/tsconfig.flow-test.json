@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "outDir": "./build/flow-test",
+    "rootDir": "./src",
+    "sourceMap": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

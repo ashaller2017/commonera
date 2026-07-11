@@ -1,0 +1,14 @@
+.DS_Store
+node_modules
+.wrangler
+.vercel
+dist
+build
+
+# Codex runtime artifacts — auto-generated (AGENTS.md is derived from CLAUDE.md, the
+# tracked source of truth; .agents/ is regenerable skill-source cruft). Ignored so
+# Codex can regenerate them without creating git conflicts.
+.agents/
+AGENTS.md
+
+# GSD's gsd-install-state.json / gsd-file-manifest.json are intentionally tracked.
