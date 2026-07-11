@@ -21,7 +21,7 @@ When you're done, your folder should contain your full project code plus a `READ
 
 See here: https://docs.google.com/document/d/1-FM5nA3n9IBApQ28xMknZo6epechSapeRrOtGJuTF28/edit?tab=t.0
 
-Questions? Reach out to Kris — kbudelis@gmail.com
+Questions? Reach out to Kris
 
 ---
 
