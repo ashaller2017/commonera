@@ -15,7 +15,8 @@
     "db:migrate": "supabase migration up",
     "db:reset": "supabase db reset",
     "db:seed:gen": "node supabase/seed.gen.ts > supabase/seed.sql",
-    "db:sync": "supabase db schema declarative sync"
+    "db:sync": "supabase db schema declarative sync",
+    "admin:create": "node scripts/create-admin.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -189,3 +189,67 @@ create policy interest_insert_own on public.provider_interest
 create policy interest_select_own on public.provider_interest
   for select to authenticated
   using (created_by = (select auth.uid()));
+
+-- ---------------------------------------------------------------------------
+-- Admin (CommonEra operators). is_admin() is the boundary. Admins read all user
+-- data (account management) and read/write the whole reference catalog (CMS).
+-- Auth operations (reset password, delete account, create admin) are not
+-- expressible as RLS and run through the service-role client after an app-level
+-- is-admin check, so there are no admin insert/update/delete policies on the
+-- user tables here.
+-- ---------------------------------------------------------------------------
+revoke all on function public.is_admin() from public;
+grant execute on function public.is_admin() to authenticated;
+
+-- Read-all across families for the admin surface. OR'd with the owner policies
+-- above, so a normal user is unaffected and an admin sees everyone.
+create policy profiles_admin_read on public.profiles
+  for select to authenticated using (public.is_admin());
+create policy journeys_admin_read on public.journeys
+  for select to authenticated using (public.is_admin());
+create policy milestones_admin_read on public.milestones
+  for select to authenticated using (public.is_admin());
+create policy activities_admin_read on public.journey_activities
+  for select to authenticated using (public.is_admin());
+create policy celebration_admin_read on public.celebration_plans
+  for select to authenticated using (public.is_admin());
+create policy interest_admin_read on public.provider_interest
+  for select to authenticated using (public.is_admin());
+
+-- Full write on the reference catalog for admins. Public read stays open via the
+-- *_public_read policies; these add insert/update/delete for admins only. Every
+-- reference table also needs the write grant (select was granted above).
+grant insert, update, delete on public.templates to authenticated;
+grant insert, update, delete on public.template_milestones to authenticated;
+grant insert, update, delete on public.activity_prompts to authenticated;
+grant insert, update, delete on public.providers to authenticated;
+grant insert, update, delete on public.provider_testimonials to authenticated;
+grant insert, update, delete on public.provider_templates to authenticated;
+grant insert, update, delete on public.quiz_questions to authenticated;
+grant insert, update, delete on public.quiz_options to authenticated;
+grant insert, update, delete on public.timeline_options to authenticated;
+grant insert, update, delete on public.comfort_options to authenticated;
+grant insert, update, delete on public.stories to authenticated;
+
+create policy templates_admin_write on public.templates
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy template_milestones_admin_write on public.template_milestones
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy activity_prompts_admin_write on public.activity_prompts
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy providers_admin_write on public.providers
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy provider_testimonials_admin_write on public.provider_testimonials
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy provider_templates_admin_write on public.provider_templates
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy quiz_questions_admin_write on public.quiz_questions
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy quiz_options_admin_write on public.quiz_options
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy timeline_options_admin_write on public.timeline_options
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy comfort_options_admin_write on public.comfort_options
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+create policy stories_admin_write on public.stories
+  for all to authenticated using (public.is_admin()) with check (public.is_admin());

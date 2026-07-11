@@ -35,7 +35,11 @@ export function NavUser({ user }: { user: AuthUser }) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-bold">{user.displayName}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {user.role === 'parent' ? 'Parent' : `@${user.username ?? ''}`}
+          {user.role === 'admin'
+            ? 'CommonEra admin'
+            : user.role === 'parent'
+              ? 'Parent'
+              : `@${user.username ?? ''}`}
         </p>
       </div>
       <ThemeToggle />

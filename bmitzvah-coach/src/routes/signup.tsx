@@ -3,13 +3,14 @@ import { z } from 'zod'
 import { useAppForm } from '@/components/form'
 import { FieldGroup } from '@/components/ui/field'
 import { Wordmark } from '@/components/wordmark'
+import { homePathForRole } from '@/lib/auth/home-path'
 import { signupParentFn } from '@/utils/auth.functions'
 import type { SignupParentError } from '@/utils/auth.server'
 
 export const Route = createFileRoute('/signup')({
   beforeLoad: ({ context }) => {
     if (context.user) {
-      throw redirect({ to: context.user.role === 'parent' ? '/parent' : '/kid' })
+      throw redirect({ to: homePathForRole(context.user.role) })
     }
   },
   component: SignupPage,
@@ -32,7 +33,7 @@ function SignupPage() {
   const form = useAppForm({
     defaultValues: { displayName: '', email: '', password: '' },
     validators: {
-      onChange: signupSchema,
+      onSubmit: signupSchema,
       onSubmitAsync: async ({ value }) => {
         try {
           const result = await signupParentFn({ data: value })
@@ -59,10 +60,9 @@ function SignupPage() {
         </p>
       </div>
       <form
-        onSubmit={(event) => {
-          event.preventDefault()
-          event.stopPropagation()
-          void form.handleSubmit()
+        onSubmit={(e) => {
+          e.preventDefault()
+          form.handleSubmit()
         }}
       >
         <FieldGroup className="gap-4">
@@ -83,12 +83,10 @@ function SignupPage() {
             )}
           </form.AppField>
           <form.AppForm>
-            <div className="flex flex-col gap-4">
-              <form.FormError />
-              <form.SubmitButton size="lg" submittingLabel="Setting things up...">
-                Create account
-              </form.SubmitButton>
-            </div>
+            <form.FormError />
+            <form.SubmitButton size="lg" submittingLabel="Setting things up...">
+              Create account
+            </form.SubmitButton>
           </form.AppForm>
         </FieldGroup>
       </form>

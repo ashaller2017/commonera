@@ -48,3 +48,20 @@ as $$
       and (j.child_id = (select auth.uid()) or p.parent_id = (select auth.uid()))
   );
 $$;
+
+-- True when the current user is a CommonEra operator. Backs the admin read
+-- policies on user data and the write policies on the reference catalog.
+create function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = (select auth.uid())
+      and p.role = 'admin'
+  );
+$$;

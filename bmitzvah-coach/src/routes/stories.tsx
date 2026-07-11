@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { TemplateChip } from '@/components/template-chip'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/wordmark'
+import { homePathForRole } from '@/lib/auth/home-path'
 import { TEMPLATE_PALETTE } from '@/lib/content/palette'
 import { cn } from '@/lib/utils'
 import { fetchStoriesFn } from '@/utils/content.functions'
@@ -16,7 +17,7 @@ export const Route = createFileRoute('/stories')({
 function StoriesPage() {
   const { user } = Route.useRouteContext()
   const { stories } = Route.useLoaderData()
-  const home = user ? (user.role === 'parent' ? '/parent' : '/kid') : '/signup'
+  const home = user ? homePathForRole(user.role) : '/signup'
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -24,9 +25,7 @@ function StoriesPage() {
         <Wordmark />
         <div className="flex items-center gap-2">
           {user ? (
-            <Button render={<Link to={user.role === 'parent' ? '/parent' : '/kid'} />}>
-              Open my journey
-            </Button>
+            <Button render={<Link to={homePathForRole(user.role)} />}>Open my journey</Button>
           ) : (
             <>
               <Button variant="ghost" render={<Link to="/login" />}>

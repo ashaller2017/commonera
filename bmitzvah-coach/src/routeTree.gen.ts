@@ -17,14 +17,29 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedProvidersRouteImport } from './routes/_authed/providers'
 import { Route as AuthedParentRouteImport } from './routes/_authed/parent'
 import { Route as AuthedKidRouteImport } from './routes/_authed/kid'
+import { Route as AuthedAdminRouteImport } from './routes/_authed/admin'
 import { Route as AuthedParentIndexRouteImport } from './routes/_authed/parent/index'
 import { Route as AuthedKidIndexRouteImport } from './routes/_authed/kid/index'
+import { Route as AuthedAdminIndexRouteImport } from './routes/_authed/admin/index'
 import { Route as AuthedParentGuidesRouteImport } from './routes/_authed/parent/guides'
 import { Route as AuthedKidQuizRouteImport } from './routes/_authed/kid/quiz'
 import { Route as AuthedKidGuidesRouteImport } from './routes/_authed/kid/guides'
 import { Route as AuthedKidCelebrationRouteImport } from './routes/_authed/kid/celebration'
 import { Route as AuthedKidCardRouteImport } from './routes/_authed/kid/card'
+import { Route as AuthedAdminContentRouteImport } from './routes/_authed/admin/content'
+import { Route as AuthedAdminAdminsRouteImport } from './routes/_authed/admin/admins'
+import { Route as AuthedAdminAccountsRouteImport } from './routes/_authed/admin/accounts'
+import { Route as AuthedAdminContentIndexRouteImport } from './routes/_authed/admin/content/index'
+import { Route as AuthedAdminAccountsIndexRouteImport } from './routes/_authed/admin/accounts.index'
 import { Route as AuthedParentKidsChildIdRouteImport } from './routes/_authed/parent/kids.$childId'
+import { Route as AuthedAdminContentTemplatesRouteImport } from './routes/_authed/admin/content/templates'
+import { Route as AuthedAdminContentStoriesRouteImport } from './routes/_authed/admin/content/stories'
+import { Route as AuthedAdminContentSetupRouteImport } from './routes/_authed/admin/content/setup'
+import { Route as AuthedAdminContentQuizRouteImport } from './routes/_authed/admin/content/quiz'
+import { Route as AuthedAdminContentProvidersRouteImport } from './routes/_authed/admin/content/providers'
+import { Route as AuthedAdminContentPromptsRouteImport } from './routes/_authed/admin/content/prompts'
+import { Route as AuthedAdminContentMilestonesRouteImport } from './routes/_authed/admin/content/milestones'
+import { Route as AuthedAdminAccountsParentIdRouteImport } from './routes/_authed/admin/accounts.$parentId'
 
 const StoriesRoute = StoriesRouteImport.update({
   id: '/stories',
@@ -65,6 +80,11 @@ const AuthedKidRoute = AuthedKidRouteImport.update({
   path: '/kid',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedAdminRoute = AuthedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedParentIndexRoute = AuthedParentIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -74,6 +94,11 @@ const AuthedKidIndexRoute = AuthedKidIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthedKidRoute,
+} as any)
+const AuthedAdminIndexRoute = AuthedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedAdminRoute,
 } as any)
 const AuthedParentGuidesRoute = AuthedParentGuidesRouteImport.update({
   id: '/guides',
@@ -100,28 +125,115 @@ const AuthedKidCardRoute = AuthedKidCardRouteImport.update({
   path: '/card',
   getParentRoute: () => AuthedKidRoute,
 } as any)
+const AuthedAdminContentRoute = AuthedAdminContentRouteImport.update({
+  id: '/content',
+  path: '/content',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminAdminsRoute = AuthedAdminAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminAccountsRoute = AuthedAdminAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => AuthedAdminRoute,
+} as any)
+const AuthedAdminContentIndexRoute = AuthedAdminContentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedAdminContentRoute,
+} as any)
+const AuthedAdminAccountsIndexRoute =
+  AuthedAdminAccountsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthedAdminAccountsRoute,
+  } as any)
 const AuthedParentKidsChildIdRoute = AuthedParentKidsChildIdRouteImport.update({
   id: '/kids/$childId',
   path: '/kids/$childId',
   getParentRoute: () => AuthedParentRoute,
 } as any)
+const AuthedAdminContentTemplatesRoute =
+  AuthedAdminContentTemplatesRouteImport.update({
+    id: '/templates',
+    path: '/templates',
+    getParentRoute: () => AuthedAdminContentRoute,
+  } as any)
+const AuthedAdminContentStoriesRoute =
+  AuthedAdminContentStoriesRouteImport.update({
+    id: '/stories',
+    path: '/stories',
+    getParentRoute: () => AuthedAdminContentRoute,
+  } as any)
+const AuthedAdminContentSetupRoute = AuthedAdminContentSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => AuthedAdminContentRoute,
+} as any)
+const AuthedAdminContentQuizRoute = AuthedAdminContentQuizRouteImport.update({
+  id: '/quiz',
+  path: '/quiz',
+  getParentRoute: () => AuthedAdminContentRoute,
+} as any)
+const AuthedAdminContentProvidersRoute =
+  AuthedAdminContentProvidersRouteImport.update({
+    id: '/providers',
+    path: '/providers',
+    getParentRoute: () => AuthedAdminContentRoute,
+  } as any)
+const AuthedAdminContentPromptsRoute =
+  AuthedAdminContentPromptsRouteImport.update({
+    id: '/prompts',
+    path: '/prompts',
+    getParentRoute: () => AuthedAdminContentRoute,
+  } as any)
+const AuthedAdminContentMilestonesRoute =
+  AuthedAdminContentMilestonesRouteImport.update({
+    id: '/milestones',
+    path: '/milestones',
+    getParentRoute: () => AuthedAdminContentRoute,
+  } as any)
+const AuthedAdminAccountsParentIdRoute =
+  AuthedAdminAccountsParentIdRouteImport.update({
+    id: '/$parentId',
+    path: '/$parentId',
+    getParentRoute: () => AuthedAdminAccountsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/stories': typeof StoriesRoute
+  '/admin': typeof AuthedAdminRouteWithChildren
   '/kid': typeof AuthedKidRouteWithChildren
   '/parent': typeof AuthedParentRouteWithChildren
   '/providers': typeof AuthedProvidersRoute
+  '/admin/accounts': typeof AuthedAdminAccountsRouteWithChildren
+  '/admin/admins': typeof AuthedAdminAdminsRoute
+  '/admin/content': typeof AuthedAdminContentRouteWithChildren
   '/kid/card': typeof AuthedKidCardRoute
   '/kid/celebration': typeof AuthedKidCelebrationRoute
   '/kid/guides': typeof AuthedKidGuidesRoute
   '/kid/quiz': typeof AuthedKidQuizRoute
   '/parent/guides': typeof AuthedParentGuidesRoute
+  '/admin/': typeof AuthedAdminIndexRoute
   '/kid/': typeof AuthedKidIndexRoute
   '/parent/': typeof AuthedParentIndexRoute
+  '/admin/accounts/$parentId': typeof AuthedAdminAccountsParentIdRoute
+  '/admin/content/milestones': typeof AuthedAdminContentMilestonesRoute
+  '/admin/content/prompts': typeof AuthedAdminContentPromptsRoute
+  '/admin/content/providers': typeof AuthedAdminContentProvidersRoute
+  '/admin/content/quiz': typeof AuthedAdminContentQuizRoute
+  '/admin/content/setup': typeof AuthedAdminContentSetupRoute
+  '/admin/content/stories': typeof AuthedAdminContentStoriesRoute
+  '/admin/content/templates': typeof AuthedAdminContentTemplatesRoute
   '/parent/kids/$childId': typeof AuthedParentKidsChildIdRoute
+  '/admin/accounts/': typeof AuthedAdminAccountsIndexRoute
+  '/admin/content/': typeof AuthedAdminContentIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -129,14 +241,26 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/stories': typeof StoriesRoute
   '/providers': typeof AuthedProvidersRoute
+  '/admin/admins': typeof AuthedAdminAdminsRoute
   '/kid/card': typeof AuthedKidCardRoute
   '/kid/celebration': typeof AuthedKidCelebrationRoute
   '/kid/guides': typeof AuthedKidGuidesRoute
   '/kid/quiz': typeof AuthedKidQuizRoute
   '/parent/guides': typeof AuthedParentGuidesRoute
+  '/admin': typeof AuthedAdminIndexRoute
   '/kid': typeof AuthedKidIndexRoute
   '/parent': typeof AuthedParentIndexRoute
+  '/admin/accounts/$parentId': typeof AuthedAdminAccountsParentIdRoute
+  '/admin/content/milestones': typeof AuthedAdminContentMilestonesRoute
+  '/admin/content/prompts': typeof AuthedAdminContentPromptsRoute
+  '/admin/content/providers': typeof AuthedAdminContentProvidersRoute
+  '/admin/content/quiz': typeof AuthedAdminContentQuizRoute
+  '/admin/content/setup': typeof AuthedAdminContentSetupRoute
+  '/admin/content/stories': typeof AuthedAdminContentStoriesRoute
+  '/admin/content/templates': typeof AuthedAdminContentTemplatesRoute
   '/parent/kids/$childId': typeof AuthedParentKidsChildIdRoute
+  '/admin/accounts': typeof AuthedAdminAccountsIndexRoute
+  '/admin/content': typeof AuthedAdminContentIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,17 +269,32 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/stories': typeof StoriesRoute
+  '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/kid': typeof AuthedKidRouteWithChildren
   '/_authed/parent': typeof AuthedParentRouteWithChildren
   '/_authed/providers': typeof AuthedProvidersRoute
+  '/_authed/admin/accounts': typeof AuthedAdminAccountsRouteWithChildren
+  '/_authed/admin/admins': typeof AuthedAdminAdminsRoute
+  '/_authed/admin/content': typeof AuthedAdminContentRouteWithChildren
   '/_authed/kid/card': typeof AuthedKidCardRoute
   '/_authed/kid/celebration': typeof AuthedKidCelebrationRoute
   '/_authed/kid/guides': typeof AuthedKidGuidesRoute
   '/_authed/kid/quiz': typeof AuthedKidQuizRoute
   '/_authed/parent/guides': typeof AuthedParentGuidesRoute
+  '/_authed/admin/': typeof AuthedAdminIndexRoute
   '/_authed/kid/': typeof AuthedKidIndexRoute
   '/_authed/parent/': typeof AuthedParentIndexRoute
+  '/_authed/admin/accounts/$parentId': typeof AuthedAdminAccountsParentIdRoute
+  '/_authed/admin/content/milestones': typeof AuthedAdminContentMilestonesRoute
+  '/_authed/admin/content/prompts': typeof AuthedAdminContentPromptsRoute
+  '/_authed/admin/content/providers': typeof AuthedAdminContentProvidersRoute
+  '/_authed/admin/content/quiz': typeof AuthedAdminContentQuizRoute
+  '/_authed/admin/content/setup': typeof AuthedAdminContentSetupRoute
+  '/_authed/admin/content/stories': typeof AuthedAdminContentStoriesRoute
+  '/_authed/admin/content/templates': typeof AuthedAdminContentTemplatesRoute
   '/_authed/parent/kids/$childId': typeof AuthedParentKidsChildIdRoute
+  '/_authed/admin/accounts/': typeof AuthedAdminAccountsIndexRoute
+  '/_authed/admin/content/': typeof AuthedAdminContentIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -164,17 +303,32 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/stories'
+    | '/admin'
     | '/kid'
     | '/parent'
     | '/providers'
+    | '/admin/accounts'
+    | '/admin/admins'
+    | '/admin/content'
     | '/kid/card'
     | '/kid/celebration'
     | '/kid/guides'
     | '/kid/quiz'
     | '/parent/guides'
+    | '/admin/'
     | '/kid/'
     | '/parent/'
+    | '/admin/accounts/$parentId'
+    | '/admin/content/milestones'
+    | '/admin/content/prompts'
+    | '/admin/content/providers'
+    | '/admin/content/quiz'
+    | '/admin/content/setup'
+    | '/admin/content/stories'
+    | '/admin/content/templates'
     | '/parent/kids/$childId'
+    | '/admin/accounts/'
+    | '/admin/content/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -182,14 +336,26 @@ export interface FileRouteTypes {
     | '/signup'
     | '/stories'
     | '/providers'
+    | '/admin/admins'
     | '/kid/card'
     | '/kid/celebration'
     | '/kid/guides'
     | '/kid/quiz'
     | '/parent/guides'
+    | '/admin'
     | '/kid'
     | '/parent'
+    | '/admin/accounts/$parentId'
+    | '/admin/content/milestones'
+    | '/admin/content/prompts'
+    | '/admin/content/providers'
+    | '/admin/content/quiz'
+    | '/admin/content/setup'
+    | '/admin/content/stories'
+    | '/admin/content/templates'
     | '/parent/kids/$childId'
+    | '/admin/accounts'
+    | '/admin/content'
   id:
     | '__root__'
     | '/'
@@ -197,17 +363,32 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/stories'
+    | '/_authed/admin'
     | '/_authed/kid'
     | '/_authed/parent'
     | '/_authed/providers'
+    | '/_authed/admin/accounts'
+    | '/_authed/admin/admins'
+    | '/_authed/admin/content'
     | '/_authed/kid/card'
     | '/_authed/kid/celebration'
     | '/_authed/kid/guides'
     | '/_authed/kid/quiz'
     | '/_authed/parent/guides'
+    | '/_authed/admin/'
     | '/_authed/kid/'
     | '/_authed/parent/'
+    | '/_authed/admin/accounts/$parentId'
+    | '/_authed/admin/content/milestones'
+    | '/_authed/admin/content/prompts'
+    | '/_authed/admin/content/providers'
+    | '/_authed/admin/content/quiz'
+    | '/_authed/admin/content/setup'
+    | '/_authed/admin/content/stories'
+    | '/_authed/admin/content/templates'
     | '/_authed/parent/kids/$childId'
+    | '/_authed/admin/accounts/'
+    | '/_authed/admin/content/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -276,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedKidRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/admin': {
+      id: '/_authed/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthedAdminRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/parent/': {
       id: '/_authed/parent/'
       path: '/'
@@ -289,6 +477,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/kid/'
       preLoaderRoute: typeof AuthedKidIndexRouteImport
       parentRoute: typeof AuthedKidRoute
+    }
+    '/_authed/admin/': {
+      id: '/_authed/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthedAdminIndexRouteImport
+      parentRoute: typeof AuthedAdminRoute
     }
     '/_authed/parent/guides': {
       id: '/_authed/parent/guides'
@@ -325,6 +520,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedKidCardRouteImport
       parentRoute: typeof AuthedKidRoute
     }
+    '/_authed/admin/content': {
+      id: '/_authed/admin/content'
+      path: '/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AuthedAdminContentRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/admins': {
+      id: '/_authed/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AuthedAdminAdminsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/accounts': {
+      id: '/_authed/admin/accounts'
+      path: '/accounts'
+      fullPath: '/admin/accounts'
+      preLoaderRoute: typeof AuthedAdminAccountsRouteImport
+      parentRoute: typeof AuthedAdminRoute
+    }
+    '/_authed/admin/content/': {
+      id: '/_authed/admin/content/'
+      path: '/'
+      fullPath: '/admin/content/'
+      preLoaderRoute: typeof AuthedAdminContentIndexRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/accounts/': {
+      id: '/_authed/admin/accounts/'
+      path: '/'
+      fullPath: '/admin/accounts/'
+      preLoaderRoute: typeof AuthedAdminAccountsIndexRouteImport
+      parentRoute: typeof AuthedAdminAccountsRoute
+    }
     '/_authed/parent/kids/$childId': {
       id: '/_authed/parent/kids/$childId'
       path: '/kids/$childId'
@@ -332,8 +562,120 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedParentKidsChildIdRouteImport
       parentRoute: typeof AuthedParentRoute
     }
+    '/_authed/admin/content/templates': {
+      id: '/_authed/admin/content/templates'
+      path: '/templates'
+      fullPath: '/admin/content/templates'
+      preLoaderRoute: typeof AuthedAdminContentTemplatesRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/content/stories': {
+      id: '/_authed/admin/content/stories'
+      path: '/stories'
+      fullPath: '/admin/content/stories'
+      preLoaderRoute: typeof AuthedAdminContentStoriesRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/content/setup': {
+      id: '/_authed/admin/content/setup'
+      path: '/setup'
+      fullPath: '/admin/content/setup'
+      preLoaderRoute: typeof AuthedAdminContentSetupRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/content/quiz': {
+      id: '/_authed/admin/content/quiz'
+      path: '/quiz'
+      fullPath: '/admin/content/quiz'
+      preLoaderRoute: typeof AuthedAdminContentQuizRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/content/providers': {
+      id: '/_authed/admin/content/providers'
+      path: '/providers'
+      fullPath: '/admin/content/providers'
+      preLoaderRoute: typeof AuthedAdminContentProvidersRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/content/prompts': {
+      id: '/_authed/admin/content/prompts'
+      path: '/prompts'
+      fullPath: '/admin/content/prompts'
+      preLoaderRoute: typeof AuthedAdminContentPromptsRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/content/milestones': {
+      id: '/_authed/admin/content/milestones'
+      path: '/milestones'
+      fullPath: '/admin/content/milestones'
+      preLoaderRoute: typeof AuthedAdminContentMilestonesRouteImport
+      parentRoute: typeof AuthedAdminContentRoute
+    }
+    '/_authed/admin/accounts/$parentId': {
+      id: '/_authed/admin/accounts/$parentId'
+      path: '/$parentId'
+      fullPath: '/admin/accounts/$parentId'
+      preLoaderRoute: typeof AuthedAdminAccountsParentIdRouteImport
+      parentRoute: typeof AuthedAdminAccountsRoute
+    }
   }
 }
+
+interface AuthedAdminAccountsRouteChildren {
+  AuthedAdminAccountsParentIdRoute: typeof AuthedAdminAccountsParentIdRoute
+  AuthedAdminAccountsIndexRoute: typeof AuthedAdminAccountsIndexRoute
+}
+
+const AuthedAdminAccountsRouteChildren: AuthedAdminAccountsRouteChildren = {
+  AuthedAdminAccountsParentIdRoute: AuthedAdminAccountsParentIdRoute,
+  AuthedAdminAccountsIndexRoute: AuthedAdminAccountsIndexRoute,
+}
+
+const AuthedAdminAccountsRouteWithChildren =
+  AuthedAdminAccountsRoute._addFileChildren(AuthedAdminAccountsRouteChildren)
+
+interface AuthedAdminContentRouteChildren {
+  AuthedAdminContentMilestonesRoute: typeof AuthedAdminContentMilestonesRoute
+  AuthedAdminContentPromptsRoute: typeof AuthedAdminContentPromptsRoute
+  AuthedAdminContentProvidersRoute: typeof AuthedAdminContentProvidersRoute
+  AuthedAdminContentQuizRoute: typeof AuthedAdminContentQuizRoute
+  AuthedAdminContentSetupRoute: typeof AuthedAdminContentSetupRoute
+  AuthedAdminContentStoriesRoute: typeof AuthedAdminContentStoriesRoute
+  AuthedAdminContentTemplatesRoute: typeof AuthedAdminContentTemplatesRoute
+  AuthedAdminContentIndexRoute: typeof AuthedAdminContentIndexRoute
+}
+
+const AuthedAdminContentRouteChildren: AuthedAdminContentRouteChildren = {
+  AuthedAdminContentMilestonesRoute: AuthedAdminContentMilestonesRoute,
+  AuthedAdminContentPromptsRoute: AuthedAdminContentPromptsRoute,
+  AuthedAdminContentProvidersRoute: AuthedAdminContentProvidersRoute,
+  AuthedAdminContentQuizRoute: AuthedAdminContentQuizRoute,
+  AuthedAdminContentSetupRoute: AuthedAdminContentSetupRoute,
+  AuthedAdminContentStoriesRoute: AuthedAdminContentStoriesRoute,
+  AuthedAdminContentTemplatesRoute: AuthedAdminContentTemplatesRoute,
+  AuthedAdminContentIndexRoute: AuthedAdminContentIndexRoute,
+}
+
+const AuthedAdminContentRouteWithChildren =
+  AuthedAdminContentRoute._addFileChildren(AuthedAdminContentRouteChildren)
+
+interface AuthedAdminRouteChildren {
+  AuthedAdminAccountsRoute: typeof AuthedAdminAccountsRouteWithChildren
+  AuthedAdminAdminsRoute: typeof AuthedAdminAdminsRoute
+  AuthedAdminContentRoute: typeof AuthedAdminContentRouteWithChildren
+  AuthedAdminIndexRoute: typeof AuthedAdminIndexRoute
+}
+
+const AuthedAdminRouteChildren: AuthedAdminRouteChildren = {
+  AuthedAdminAccountsRoute: AuthedAdminAccountsRouteWithChildren,
+  AuthedAdminAdminsRoute: AuthedAdminAdminsRoute,
+  AuthedAdminContentRoute: AuthedAdminContentRouteWithChildren,
+  AuthedAdminIndexRoute: AuthedAdminIndexRoute,
+}
+
+const AuthedAdminRouteWithChildren = AuthedAdminRoute._addFileChildren(
+  AuthedAdminRouteChildren,
+)
 
 interface AuthedKidRouteChildren {
   AuthedKidCardRoute: typeof AuthedKidCardRoute
@@ -372,12 +714,14 @@ const AuthedParentRouteWithChildren = AuthedParentRoute._addFileChildren(
 )
 
 interface AuthedRouteChildren {
+  AuthedAdminRoute: typeof AuthedAdminRouteWithChildren
   AuthedKidRoute: typeof AuthedKidRouteWithChildren
   AuthedParentRoute: typeof AuthedParentRouteWithChildren
   AuthedProvidersRoute: typeof AuthedProvidersRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
+  AuthedAdminRoute: AuthedAdminRouteWithChildren,
   AuthedKidRoute: AuthedKidRouteWithChildren,
   AuthedParentRoute: AuthedParentRouteWithChildren,
   AuthedProvidersRoute: AuthedProvidersRoute,

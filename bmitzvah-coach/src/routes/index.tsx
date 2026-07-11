@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/theme'
 import { Button } from '@/components/ui/button'
 import { Wordmark } from '@/components/wordmark'
 import { useTemplates } from '@/hooks/use-templates'
+import { homePathForRole } from '@/lib/auth/home-path'
 import { TEMPLATE_PALETTE } from '@/lib/content/palette'
 import { cn } from '@/lib/utils'
 import { fetchProvidersFn, fetchStoriesFn } from '@/utils/content.functions'
@@ -65,7 +66,7 @@ function LandingPage() {
   const verifiedProviders = providers.filter((p) => p.verified)
 
   const cta = user
-    ? { to: user.role === 'parent' ? '/parent' : '/kid', label: 'Open my journey' }
+    ? { to: homePathForRole(user.role), label: 'Open my journey' }
     : { to: '/signup', label: 'Begin your journey' }
 
   return (
@@ -75,9 +76,7 @@ function LandingPage() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           {user ? (
-            <Button render={<Link to={user.role === 'parent' ? '/parent' : '/kid'} />}>
-              Open my journey
-            </Button>
+            <Button render={<Link to={homePathForRole(user.role)} />}>Open my journey</Button>
           ) : (
             <>
               <Button variant="ghost" render={<Link to="/login" />}>
@@ -521,9 +520,11 @@ function LandingPage() {
                     <Link
                       to={
                         user
-                          ? user.role === 'parent'
-                            ? '/parent/guides'
-                            : '/kid/guides'
+                          ? user.role === 'admin'
+                            ? '/admin'
+                            : user.role === 'parent'
+                              ? '/parent/guides'
+                              : '/kid/guides'
                           : '/signup'
                       }
                     />

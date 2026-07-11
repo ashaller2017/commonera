@@ -4,12 +4,13 @@ import { useAppForm } from '@/components/form'
 import { FieldGroup } from '@/components/ui/field'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Wordmark } from '@/components/wordmark'
+import { homePathForRole } from '@/lib/auth/home-path'
 import { loginKidFn, loginParentFn } from '@/utils/auth.functions'
 
 export const Route = createFileRoute('/login')({
   beforeLoad: ({ context }) => {
     if (context.user) {
-      throw redirect({ to: context.user.role === 'parent' ? '/parent' : '/kid' })
+      throw redirect({ to: homePathForRole(context.user.role) })
     }
   },
   component: LoginPage,
@@ -34,7 +35,7 @@ function KidLoginForm() {
   const form = useAppForm({
     defaultValues: { username: '', password: '' },
     validators: {
-      onChange: kidLoginSchema,
+      onSubmit: kidLoginSchema,
       onSubmitAsync: async ({ value }) => {
         try {
           const result = await loginKidFn({ data: value })
@@ -52,10 +53,9 @@ function KidLoginForm() {
 
   return (
     <form
-      onSubmit={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        void form.handleSubmit()
+      onSubmit={(e) => {
+        e.preventDefault()
+        form.handleSubmit()
       }}
     >
       <FieldGroup className="gap-4">
@@ -74,12 +74,10 @@ function KidLoginForm() {
           )}
         </form.AppField>
         <form.AppForm>
-          <div className="flex flex-col gap-4">
-            <form.FormError />
-            <form.SubmitButton size="lg" submittingLabel="Checking...">
-              Jump back in
-            </form.SubmitButton>
-          </div>
+          <form.FormError />
+          <form.SubmitButton size="lg" submittingLabel="Checking...">
+            Jump back in
+          </form.SubmitButton>
         </form.AppForm>
       </FieldGroup>
     </form>
@@ -91,7 +89,7 @@ function ParentLoginForm() {
   const form = useAppForm({
     defaultValues: { email: '', password: '' },
     validators: {
-      onChange: parentLoginSchema,
+      onSubmit: parentLoginSchema,
       onSubmitAsync: async ({ value }) => {
         try {
           const result = await loginParentFn({ data: value })
@@ -109,10 +107,9 @@ function ParentLoginForm() {
 
   return (
     <form
-      onSubmit={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        void form.handleSubmit()
+      onSubmit={(e) => {
+        e.preventDefault()
+        form.handleSubmit()
       }}
     >
       <FieldGroup className="gap-4">
@@ -125,12 +122,10 @@ function ParentLoginForm() {
           )}
         </form.AppField>
         <form.AppForm>
-          <div className="flex flex-col gap-4">
-            <form.FormError />
-            <form.SubmitButton size="lg" submittingLabel="Checking...">
-              Log in
-            </form.SubmitButton>
-          </div>
+          <form.FormError />
+          <form.SubmitButton size="lg" submittingLabel="Checking...">
+            Log in
+          </form.SubmitButton>
         </form.AppForm>
       </FieldGroup>
     </form>

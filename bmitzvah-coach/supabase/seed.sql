@@ -1,7 +1,7 @@
--- GENERATED FILE. Do not edit by hand.
--- Source: src/lib/content/* (the authoring source of truth).
--- Regenerate: pnpm db:seed:gen
--- Loaded automatically by `supabase db reset` (see [db.seed] in config.toml).
+-- GENERATED FILE. Do not edit by hand. Regenerate: pnpm db:seed:gen
+-- Source: src/lib/content/* (first-boot defaults). Loaded by `supabase db reset`.
+-- Content is edited in the admin panel and the DB is authoritative; this seed is
+-- non-destructive (`on conflict do nothing`) so re-running never clobbers edits.
 
 begin;
 
@@ -12,17 +12,7 @@ insert into public.templates (key, name, emoji, tagline, description, jewish_len
   ('mind-and-meaning', 'Mind & Meaning', '📖', 'Chase a question that won''t let you go.', 'This journey is for the ones who love to think. You pick a real question, big, weird, or personal, and dig into it for months like your own private investigation. At the end you don''t just have an answer, you have a point of view.', 'Jewish learning has always prized the question over the easy answer, arguing with the text instead of just accepting it. If you like wrestling with hard ideas, you''re in good company.', array['learning', 'ideas', 'independent study', 'philosophy'], array['A salon evening where you present your findings and take real questions from guests.', 'A printed booklet or website of your research handed to everyone who comes.'], array['Write down the one question you would stay up late reading about and make it your project.', 'Get a library card or one strong source this week and start taking notes.', 'Book one 15 minute interview with someone who knows more than you.'], array['tutors', 'subject mentors', 'independent scholars'], 3),
   ('roots-and-rituals', 'Roots & Rituals', '🕯️', 'Old traditions, entirely on your terms.', 'This journey is for the tradition-curious. You explore the rituals, stories, and recipes your family comes from, and choose which ones feel like yours to keep. Nothing is required, everything is an invitation. You end up with your own version of tradition.', 'A B''Mitzvah has always been a moment of stepping into your own place in a long story. Here you get to decide which threads of that story you want to carry forward, and how.', array['tradition', 'family', 'heritage', 'story'], array['A multi-generation dinner where each generation shares a story or a blessing in their own words.', 'A display of family photos and objects with the story you collected placed next to each one.'], array['Call or sit with one older relative this week and ask them a single question about their childhood.', 'Pick the family recipe you love most and find out who it came from.', 'Start a notes file for every family story you hear so none of them get lost.'], array['culture guides', 'family ritual mentors', 'independent educators'], 4),
   ('my-own-path', 'My Own Path', '✨', 'None of these? Build your own.', 'Same journey, blank canvas. You get the exact structure everyone else gets, the milestones, the mentor, the celebration, but you fill it with whatever you''re actually into. Mash up two ideas, invent a challenge, go somewhere none of the templates go.', 'Becoming B''Mitzvah has always meant taking ownership: standing up and saying this is mine now. Designing your own path from scratch might be the most honest way to do exactly that.', array['custom', 'independent', 'original', 'hybrid'], array['A celebration you fully art-direct, mixing whatever you love: outdoor, music, food, and all.', 'An unveiling where you reveal the custom thing you built and explain why you did it your way.'], array['List five things you love that do not usually go together and look for the overlap.', 'Steal one idea from each of the other journeys and mix them into a shortlist.', 'Give your journey a name only you would pick and write it somewhere you will see it.'], array['generalist mentors', 'project coaches', 'independent guides'], 5)
-on conflict (key) do update set
-    name = excluded.name,
-    emoji = excluded.emoji,
-    tagline = excluded.tagline,
-    description = excluded.description,
-    jewish_lens = excluded.jewish_lens,
-    themes = excluded.themes,
-    celebration_ideas = excluded.celebration_ideas,
-    getting_started = excluded.getting_started,
-    provider_types = excluded.provider_types,
-    position = excluded.position;
+on conflict (key) do nothing;
 
 insert into public.template_milestones (template, position, title, description) values
   ('into-the-wild', 0, 'Choose Your Wild', 'Pick the landscape or cause that pulls at you, from local trails to the ocean.'),
@@ -61,9 +51,7 @@ insert into public.template_milestones (template, position, title, description) 
   ('my-own-path', 3, 'Build the Middle', 'Do the months of real work your challenge demands.'),
   ('my-own-path', 4, 'Pull It Together', 'Shape everything you did into something you can share.'),
   ('my-own-path', 5, 'Celebrate Your Way', 'Mark the day exactly how you imagined it from the start.')
-on conflict (template, position) do update set
-    title = excluded.title,
-    description = excluded.description;
+on conflict (template, position) do nothing;
 
 insert into public.activity_prompts (id, template, kind, title, description, position) values
   ('wild-trail-restore', 'into-the-wild', 'do', 'Trail You Restore', 'Adopt a nearby trail and make it your project: clear litter, log the plants and animals you spot, and leave it better than you found it.', 0),
@@ -114,12 +102,7 @@ insert into public.activity_prompts (id, template, kind, title, description, pos
   ('path-mentor-collab', 'my-own-path', 'learn', 'Collaborate With A Mentor', 'Find one adult who does something you admire and learn by doing it alongside them.', 45),
   ('path-time-capsule', 'my-own-path', 'create', 'Make A Time Capsule', 'Capture who you are right now in a box or a file to open at 18.', 46),
   ('path-document-journey', 'my-own-path', 'create', 'Document The Whole Thing', 'Vlog, blog, or journal your journey so the process itself is the project.', 47)
-on conflict (id) do update set
-    template = excluded.template,
-    kind = excluded.kind,
-    title = excluded.title,
-    description = excluded.description,
-    position = excluded.position;
+on conflict (id) do nothing;
 
 insert into public.providers (key, name, tagline, overview, approach, format, location, price_range, org_type, verified, position) values
   ('wildroots-collective', 'Wildroots Collective', 'B''Mitzvah journeys that happen outside.', 'Wildroots runs season-long outdoor journeys where kids choose a landscape and learn it by living in it. Groups meet on trails, rivers, and campsites through the year, ending with a ceremony under open sky. Everything is built around the natural world, not a building.', 'They believe the outdoors is the best teacher there is, and their guides walk beside kids rather than lecture at them.', 'in-person', 'Bay Area, CA', '$1,200 to $2,800', 'organization', true, 0),
@@ -128,17 +111,7 @@ insert into public.providers (key, name, tagline, overview, approach, format, lo
   ('jonah-adler-mentoring', 'Jonah Adler Mentoring', 'A thinking partner for your biggest question.', 'Jonah is a former teacher who guides kids through a self-directed study on a question they choose. Over months of weekly video calls, he helps them read widely, argue carefully, and build a point of view. The journey ends in a talk the kid delivers to a real audience.', 'Jonah never hands over answers, he asks better questions until the kid finds their own.', 'virtual', 'Anywhere (video)', '$700 to $1,600', 'independent', true, 3),
   ('open-table-judaism', 'Open Table Judaism', 'Tradition you get to choose, not inherit.', 'Open Table helps families explore Jewish tradition with no expectation of joining or observing. Kids learn the stories, rituals, and meals behind a B''Mitzvah, then build their own version of the day. It''s designed for families who want the roots without the requirements.', 'They lead with invitation over obligation, meeting each family exactly where they already are.', 'hybrid', 'Denver, CO (or video)', '$800 to $2,000', 'organization', true, 4),
   ('north-star-journeys', 'North Star Journeys', 'For the kid whose idea fits no box.', 'North Star is a new outfit built for fully custom journeys, the ones that don''t match any template. A coach helps the kid design a challenge from scratch, find the right guide, and carry it through to a celebration they invent themselves. It''s the newest program in our network and still finding its feet.', 'They start from a blank page every time, treating every kid''s weird, specific idea as the whole point.', 'virtual', 'Anywhere (video)', '$500 to $1,500', 'organization', false, 5)
-on conflict (key) do update set
-    name = excluded.name,
-    tagline = excluded.tagline,
-    overview = excluded.overview,
-    approach = excluded.approach,
-    format = excluded.format,
-    location = excluded.location,
-    price_range = excluded.price_range,
-    org_type = excluded.org_type,
-    verified = excluded.verified,
-    position = excluded.position;
+on conflict (key) do nothing;
 
 insert into public.provider_testimonials (provider_key, position, quote, attribution) values
   ('wildroots-collective', 0, 'Noa came home muddy, exhausted, and more sure of herself than I''ve ever seen her.', 'Rachel, parent of Noa, 13'),
@@ -153,9 +126,7 @@ insert into public.provider_testimonials (provider_key, position, quote, attribu
   ('open-table-judaism', 1, 'I got to keep the parts that felt like us and skip the rest. That was the whole point.', 'Zoe, 13'),
   ('north-star-journeys', 0, 'My son''s idea was so specific I didn''t think anyone could help. They just said, okay, let''s build it.', 'Rebecca, parent of Asher, 12'),
   ('north-star-journeys', 1, 'Nobody told me my plan was too weird. They helped me make it work.', 'Devon, 13')
-on conflict (provider_key, position) do update set
-    quote = excluded.quote,
-    attribution = excluded.attribution;
+on conflict (provider_key, position) do nothing;
 
 insert into public.provider_templates (provider_key, template, position) values
   ('wildroots-collective', 'into-the-wild', 0),
@@ -165,8 +136,7 @@ insert into public.provider_templates (provider_key, template, position) values
   ('open-table-judaism', 'roots-and-rituals', 0),
   ('open-table-judaism', 'my-own-path', 1),
   ('north-star-journeys', 'my-own-path', 0)
-on conflict (provider_key, template) do update set
-    position = excluded.position;
+on conflict (provider_key, template) do nothing;
 
 insert into public.quiz_questions (id, kind, prompt, helper, pick_exactly, position) values
   ('q1-words', 'words', 'Pick exactly 3 words that feel like you.', 'No overthinking, just go with your gut.', 3, 0),
@@ -179,12 +149,7 @@ insert into public.quiz_questions (id, kind, prompt, helper, pick_exactly, posit
   ('q8-rather', 'single', 'Would you rather...', null, null, 7),
   ('q9-story', 'single', 'What story do you want people to tell about your big day?', null, null, 8),
   ('q10-best-part', 'single', 'Last one. When a project is done, the best part is...', null, null, 9)
-on conflict (id) do update set
-    kind = excluded.kind,
-    prompt = excluded.prompt,
-    helper = excluded.helper,
-    pick_exactly = excluded.pick_exactly,
-    position = excluded.position;
+on conflict (id) do nothing;
 
 insert into public.quiz_options (id, question_id, label, emoji, weights, position) values
   ('q1-adventurous', 'q1-words', 'Adventurous', '🧭', '{"into-the-wild":2}'::jsonb, 0),
@@ -252,31 +217,20 @@ insert into public.quiz_options (id, question_id, label, emoji, weights, positio
   ('q10-understanding', 'q10-best-part', 'Understanding something you didn''t before', '💭', '{"mind-and-meaning":3}'::jsonb, 3),
   ('q10-table', 'q10-best-part', 'Sharing it around a table with people you love', '🍽️', '{"roots-and-rituals":3}'::jsonb, 4),
   ('q10-your-way', 'q10-best-part', 'Knowing you did it exactly your way', '🛤️', '{"my-own-path":3}'::jsonb, 5)
-on conflict (id) do update set
-    question_id = excluded.question_id,
-    label = excluded.label,
-    emoji = excluded.emoji,
-    weights = excluded.weights,
-    position = excluded.position;
+on conflict (id) do nothing;
 
 insert into public.timeline_options (key, label, helper, position) values
   ('under-6-months', 'In the next 6 months', 'Plenty of time to build something real, let''s get going.', 0),
   ('about-a-year', 'About a year away', 'A great runway, no rush and no cramming.', 1),
   ('more-than-a-year', 'More than a year out', 'Early is a gift, you can dream big and start slow.', 2),
   ('just-exploring', 'Just exploring for now', 'No pressure at all, look around and see what sparks.', 3)
-on conflict (key) do update set
-    label = excluded.label,
-    helper = excluded.helper,
-    position = excluded.position;
+on conflict (key) do nothing;
 
 insert into public.comfort_options (key, label, helper, position) values
   ('cultural', 'Keep it cultural', 'Values, family, and belonging, without the religious parts.', 0),
   ('curious', 'Curious, keep it light', 'Open to a little tradition, as long as it stays optional.', 1),
   ('traditional', 'Some tradition, please', 'Lean into the rituals and roots, on your own terms.', 2)
-on conflict (key) do update set
-    label = excluded.label,
-    helper = excluded.helper,
-    position = excluded.position;
+on conflict (key) do nothing;
 
 insert into public.stories (slug, child_name, age, template, journey_name, story, quote, celebration, position) values
   ('noa-long-way-up', 'Noa Alvarez-Klein', 13, 'into-the-wild', 'The Long Way Up', 'Noa picked a peak she could see from her bedroom window and decided she would climb it by her B''Mitzvah. She spent five months training on smaller trails, learning to read weather and pack light, with a guide who pushed her further than she thought she could go. Two weeks before the summit she rolled an ankle and nearly quit, then rebuilt her plan around a gentler route instead of giving up. On a cold, clear morning she made it to the top.', 'The mountain didn''t get smaller. I just got braver about it.', 'Her family and closest friends hiked to a meadow below the summit and met her there with blankets, food, and her grandmother''s old thermos of tea. Noa read a few words she''d written about the climb while everyone sat in the grass. It felt earned because every person there knew exactly how hard she had worked for the view.', 0),
@@ -285,14 +239,6 @@ insert into public.stories (slug, child_name, age, template, journey_name, story
   ('sam-why-we-forget', 'Sam Whitfield-Cohen', 12, 'mind-and-meaning', 'Why We Forget', 'Sam couldn''t stop wondering why people forget the things that matter most, so he made that his question for the year. He read about memory, interviewed a neuroscientist and his own grandfather, and kept a journal of how his thinking kept flipping. Halfway through he realized his first big theory was wrong and had to start his argument over, which stung. What he built instead was something he actually believed.', 'I spent months getting to an answer, then a better question showed up.', 'Sam gave a fifteen-minute talk in a friend''s living room packed with family and neighbors, and took real questions at the end like a proper lecture. His grandfather, one of the people he had interviewed, sat in the front row. It felt earned because he had genuinely changed his own mind to get there.', 3),
   ('maya-friday-table', 'Maya Delgado-Stern', 13, 'roots-and-rituals', 'The Friday Table', 'Maya''s family never kept many traditions, so she set out to find which ones were actually hers to keep. She spent months cooking with both of her grandmothers, one from Mexico City and one from her dad''s Jewish side, writing down recipes and the stories behind them. The tricky part was blending two heritages that had never really met at the same table. In the end she built a Friday-night ritual that borrowed from both.', 'I didn''t have to choose one side of my family. I got to invite both.', 'For her celebration Maya hosted a Friday dinner she designed herself, candles and challah beside her abuela''s mole, opening the meal with words she had written. Both sides of the family sat together and, for once, nobody felt like a guest. It felt earned because she had built the tradition from scratch instead of inheriting it.', 4),
   ('kai-the-mixtape-map', 'Kai Bergman-Tran', 12, 'my-own-path', 'The Mixtape Map', 'Kai loved two things that did not obviously fit together, music and mapmaking, so he invented a journey to combine them. Over five months he mapped his whole neighborhood by the sound of each block and turned it into an album with a fold-out map. Nobody had a template for it, and there were weeks he was not sure it was a real project at all. Then people started asking to walk the map with the songs in their ears.', 'My idea was too weird to fit a box, so I built my own box.', 'Kai''s celebration was a walking tour: friends and family put in headphones and followed his map through the neighborhood, block by block, song by song, ending at his favorite taco spot. Strangers kept stopping to ask what they were doing. It felt earned because he had made something that genuinely did not exist before he thought of it.', 5)
-on conflict (slug) do update set
-    child_name = excluded.child_name,
-    age = excluded.age,
-    template = excluded.template,
-    journey_name = excluded.journey_name,
-    story = excluded.story,
-    quote = excluded.quote,
-    celebration = excluded.celebration,
-    position = excluded.position;
+on conflict (slug) do nothing;
 
 commit;

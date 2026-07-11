@@ -33,24 +33,19 @@ const jsonb = (value: unknown): string => `${str(JSON.stringify(value))}::jsonb`
 
 type Column = { readonly name: string; readonly pk?: boolean }
 
-// Emit a single multi-row upsert. Non-pk columns are refreshed from the
-// incoming row so re-running the seed updates content without touching user
-// data (no truncate, so foreign keys from user tables stay intact).
-function upsert(
+// Emit a single multi-row insert. Non-destructive: `on conflict do nothing`
+// only fills rows that are missing. Once content is admin-editable the DB is the
+// source of truth, so re-running the seed must never overwrite edits. A fresh
+// `db reset` starts from an empty DB, so every row still loads there.
+function seedInsert(
   table: string,
   columns: readonly Column[],
   conflict: readonly string[],
   rows: readonly (readonly string[])[],
 ): string {
   const colNames = columns.map((c) => c.name)
-  const updates = colNames
-    .filter((name) => !conflict.includes(name))
-    .map((name) => `${name} = excluded.${name}`)
   const values = rows.map((row) => `  (${row.join(', ')})`).join(',\n')
-  const onConflict =
-    updates.length === 0
-      ? `on conflict (${conflict.join(', ')}) do nothing`
-      : `on conflict (${conflict.join(', ')}) do update set\n    ${updates.join(',\n    ')}`
+  const onConflict = `on conflict (${conflict.join(', ')}) do nothing`
   return `insert into public.${table} (${colNames.join(', ')}) values\n${values}\n${onConflict};\n`
 }
 
@@ -58,7 +53,7 @@ const blocks: string[] = []
 
 // templates
 blocks.push(
-  upsert(
+  seedInsert(
     'templates',
     [
       { name: 'key', pk: true },
@@ -92,7 +87,7 @@ blocks.push(
 
 // template_milestones
 blocks.push(
-  upsert(
+  seedInsert(
     'template_milestones',
     [
       { name: 'template', pk: true },
@@ -109,7 +104,7 @@ blocks.push(
 
 // activity_prompts
 blocks.push(
-  upsert(
+  seedInsert(
     'activity_prompts',
     [
       { name: 'id', pk: true },
@@ -133,7 +128,7 @@ blocks.push(
 
 // providers
 blocks.push(
-  upsert(
+  seedInsert(
     'providers',
     [
       { name: 'key', pk: true },
@@ -167,7 +162,7 @@ blocks.push(
 
 // provider_testimonials
 blocks.push(
-  upsert(
+  seedInsert(
     'provider_testimonials',
     [
       { name: 'provider_key', pk: true },
@@ -184,7 +179,7 @@ blocks.push(
 
 // provider_templates (many-to-many, ordered)
 blocks.push(
-  upsert(
+  seedInsert(
     'provider_templates',
     [{ name: 'provider_key', pk: true }, { name: 'template', pk: true }, { name: 'position' }],
     ['provider_key', 'template'],
@@ -194,7 +189,7 @@ blocks.push(
 
 // quiz_questions
 blocks.push(
-  upsert(
+  seedInsert(
     'quiz_questions',
     [
       { name: 'id', pk: true },
@@ -218,7 +213,7 @@ blocks.push(
 
 // quiz_options
 blocks.push(
-  upsert(
+  seedInsert(
     'quiz_options',
     [
       { name: 'id', pk: true },
@@ -244,7 +239,7 @@ blocks.push(
 
 // timeline_options
 blocks.push(
-  upsert(
+  seedInsert(
     'timeline_options',
     [{ name: 'key', pk: true }, { name: 'label' }, { name: 'helper' }, { name: 'position' }],
     ['key'],
@@ -254,7 +249,7 @@ blocks.push(
 
 // comfort_options
 blocks.push(
-  upsert(
+  seedInsert(
     'comfort_options',
     [{ name: 'key', pk: true }, { name: 'label' }, { name: 'helper' }, { name: 'position' }],
     ['key'],
@@ -264,7 +259,7 @@ blocks.push(
 
 // stories
 blocks.push(
-  upsert(
+  seedInsert(
     'stories',
     [
       { name: 'slug', pk: true },
@@ -292,10 +287,10 @@ blocks.push(
   ),
 )
 
-const header = `-- GENERATED FILE. Do not edit by hand.
--- Source: src/lib/content/* (the authoring source of truth).
--- Regenerate: pnpm db:seed:gen
--- Loaded automatically by \`supabase db reset\` (see [db.seed] in config.toml).
+const header = `-- GENERATED FILE. Do not edit by hand. Regenerate: pnpm db:seed:gen
+-- Source: src/lib/content/* (first-boot defaults). Loaded by \`supabase db reset\`.
+-- Content is edited in the admin panel and the DB is authoritative; this seed is
+-- non-destructive (\`on conflict do nothing\`) so re-running never clobbers edits.
 
 `
 

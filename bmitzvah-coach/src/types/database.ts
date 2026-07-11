@@ -641,13 +641,14 @@ export type Database = {
     }
     Functions: {
       can_view_journey: { Args: { jid: string }; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
       is_parent_of: { Args: { child: string }; Returns: boolean }
       owns_journey: { Args: { jid: string }; Returns: boolean }
     }
     Enums: {
       activity_kind: "do" | "create" | "learn" | "give"
       activity_status: "planned" | "done"
-      app_role: "parent" | "child"
+      app_role: "parent" | "child" | "admin"
       journey_template:
         | "into-the-wild"
         | "make-something-real"
@@ -791,7 +792,7 @@ export const Constants = {
     Enums: {
       activity_kind: ["do", "create", "learn", "give"],
       activity_status: ["planned", "done"],
-      app_role: ["parent", "child"],
+      app_role: ["parent", "child", "admin"],
       journey_template: [
         "into-the-wild",
         "make-something-real",

@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { getCurrentUser } from '@/utils/auth.server'
 import {
   getActivityPrompts,
   getComfortOptions,
@@ -22,9 +23,16 @@ export const fetchActivityPromptsFn = createServerFn({ method: 'GET' }).handler(
   getActivityPrompts(getSupabaseServerClient()),
 )
 
-export const fetchProvidersFn = createServerFn({ method: 'GET' }).handler(async () =>
-  getProviders(getSupabaseServerClient()),
-)
+// Provider pricing is a parent concern: kids and logged-out visitors never
+// receive the price range (stripped server-side so it isn't in their bundle).
+// Parents and admins get the full record.
+export const fetchProvidersFn = createServerFn({ method: 'GET' }).handler(async () => {
+  const supabase = getSupabaseServerClient()
+  const providers = await getProviders(supabase)
+  const me = await getCurrentUser(supabase)
+  const canSeePricing = me?.role === 'parent' || me?.role === 'admin'
+  return canSeePricing ? providers : providers.map((p) => ({ ...p, priceRange: '' }))
+})
 
 export const fetchStoriesFn = createServerFn({ method: 'GET' }).handler(async () =>
   getStories(getSupabaseServerClient()),

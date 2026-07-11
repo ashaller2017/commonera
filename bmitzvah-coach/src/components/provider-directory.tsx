@@ -145,7 +145,10 @@ function ProviderPanel({ provider, user }: { provider: Provider; user: AuthUser 
           <dl className="flex flex-col gap-2">
             <Fact label="Format" value={FORMAT_LABEL[provider.format]} textClass={textClass} />
             <Fact label="Where" value={provider.location} textClass={textClass} />
-            <Fact label="Range" value={provider.priceRange} textClass={textClass} />
+            {/* Pricing is stripped server-side for kids; only render it when present. */}
+            {provider.priceRange ? (
+              <Fact label="Range" value={provider.priceRange} textClass={textClass} />
+            ) : null}
           </dl>
           <div className="flex flex-wrap gap-2">
             {provider.templates.map((template) => (

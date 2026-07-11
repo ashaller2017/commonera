@@ -1,8 +1,9 @@
 -- Enums. Declarative: pg-delta manages these. Append new values at the end;
 -- reordering produces noisy diffs.
 
--- Account roles. Parents self-register; children are created server-side.
-create type public.app_role as enum ('parent', 'child');
+-- Account roles. Parents self-register; children are created server-side;
+-- admins (CommonEra operators) are provisioned out-of-band. Append-only.
+create type public.app_role as enum ('parent', 'child', 'admin');
 
 -- The six journey templates. This is the shared key across the whole catalog
 -- (templates, milestones, prompts, providers, stories) and the journeys a kid

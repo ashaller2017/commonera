@@ -1,8 +1,18 @@
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
-import { ArrowRight, Check, Circle, Handshake, Lock, PartyPopper, Plus, Trash2 } from 'lucide-react'
+import {
+  ArrowRight,
+  Check,
+  Circle,
+  Handshake,
+  Lock,
+  PartyPopper,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react'
 import { AnimatePresence, motion, type Variants } from 'motion/react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { TemplateChip } from '@/components/template-chip'
 import { Button } from '@/components/ui/button'
 import {
@@ -140,6 +150,7 @@ function JourneyDashboard({ journey }: { journey: JourneyView }) {
         <MilestoneMap journey={journey} palette={palette} allDone={allDone} />
         <div className="flex flex-col gap-6">
           <ActivityList journey={journey} />
+          <SuggestionBank journey={journey} />
           <GuidesReward palette={palette} progress={progress} />
         </div>
       </div>
@@ -400,14 +411,11 @@ function ActivityList({ journey }: { journey: JourneyView }) {
 
   return (
     <motion.section variants={item} className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="font-display text-2xl font-semibold">Up next</h2>
-        <AddActivityDialog journey={journey} />
-      </div>
+      <h2 className="font-display text-2xl font-semibold">Up next</h2>
       {journey.activities.length === 0 ? (
         <p className="rounded-2xl bg-secondary/60 px-5 py-6 text-sm text-muted-foreground">
-          This is your activity list: real things to do, make, learn or give. Grab a couple of ideas
-          from the bank to get moving.
+          This is your activity list: real things to do, make, learn or give. Pick a couple from the
+          ideas below to get moving.
         </p>
       ) : null}
       {
@@ -478,87 +486,166 @@ function ActivityList({ journey }: { journey: JourneyView }) {
   )
 }
 
-function AddActivityDialog({ journey }: { journey: JourneyView }) {
+// The activity prompt bank: the ~8 ideas matched to the kid's template render
+// right on the dashboard so they are impossible to miss. Ideas from other paths
+// and a write-your-own box live behind "More ideas".
+function SuggestionBank({ journey }: { journey: JourneyView }) {
   const { prompts } = Route.useLoaderData()
   const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [customTitle, setCustomTitle] = useState('')
   const addMutation = useMutation({
     mutationFn: (input: { promptId: string | null; title: string; description: string }) =>
       addActivityFn({ data: input }),
     onSuccess: async (result) => {
-      if (result.ok) {
-        setCustomTitle('')
-        await router.invalidate()
-      }
+      if (result.ok) await router.invalidate()
     },
   })
+  const add = (promptId: string | null, title: string, description: string) =>
+    addMutation.mutate({ promptId, title, description })
 
   const addedPromptIds = new Set(
     journey.activities.map((a) => a.promptId).filter((id): id is string => id !== null),
   )
-  const forTemplate = prompts.filter((p) => p.template === journey.template)
+  const matched = prompts.filter(
+    (p) => p.template === journey.template && !addedPromptIds.has(p.id),
+  )
   const others = prompts.filter((p) => p.template !== journey.template)
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" />}>
-        <Plus aria-hidden />
-        Add ideas
+    <motion.section variants={item} className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-semibold">Ideas for your path</h2>
+          <p className="text-sm text-muted-foreground">
+            Made for your journey. Tap one to add it to your list.
+          </p>
+        </div>
+        <MoreIdeasDialog
+          others={others}
+          addedPromptIds={addedPromptIds}
+          onAdd={add}
+          pending={addMutation.isPending}
+        />
+      </div>
+      {matched.length === 0 ? (
+        <p className="rounded-2xl bg-secondary/60 px-5 py-6 text-sm text-muted-foreground">
+          You've grabbed every ready-made idea for your path. Tap "More ideas" to borrow from
+          another path or invent your own.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-2.5">
+          {matched.map((prompt) => (
+            <div key={prompt.id} className="flex items-start gap-3 rounded-2xl border px-4 py-3">
+              <div className="flex-1">
+                <p className="text-sm font-bold">{prompt.title}</p>
+                <p className="text-xs text-muted-foreground">{prompt.description}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={addMutation.isPending}
+                onClick={() => add(prompt.id, prompt.title, prompt.description)}
+              >
+                <Plus aria-hidden />
+                Add
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.section>
+  )
+}
+
+function MoreIdeasDialog({
+  others,
+  addedPromptIds,
+  onAdd,
+  pending,
+}: {
+  others: readonly ActivityPrompt[]
+  addedPromptIds: ReadonlySet<string>
+  onAdd: (promptId: string | null, title: string, description: string) => void
+  pending: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [customTitle, setCustomTitle] = useState('')
+  const searchId = useId()
+
+  const q = query.trim().toLowerCase()
+  const filtered = q
+    ? others.filter((prompt) => `${prompt.title} ${prompt.description}`.toLowerCase().includes(q))
+    : others
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (!next) {
+          setQuery('')
+          setCustomTitle('')
+        }
+      }}
+    >
+      <DialogTrigger render={<Button size="sm" variant="ghost" className="shrink-0" />}>
+        More ideas
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="font-display text-2xl">The idea bank</DialogTitle>
-          <DialogDescription>
-            Concrete things to do, make, learn or give. Made for your path first, the rest below.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-6">
-          <PromptGroup
-            heading="Made for your path"
-            prompts={forTemplate}
-            addedPromptIds={addedPromptIds}
-            onAdd={(prompt) =>
-              addMutation.mutate({
-                promptId: prompt.id,
-                title: prompt.title,
-                description: prompt.description,
-              })
-            }
-            pending={addMutation.isPending}
-          />
-          <PromptGroup
-            heading="More ideas"
-            prompts={others}
-            addedPromptIds={addedPromptIds}
-            onAdd={(prompt) =>
-              addMutation.mutate({
-                promptId: prompt.id,
-                title: prompt.title,
-                description: prompt.description,
-              })
-            }
-            pending={addMutation.isPending}
-          />
+      {/* Flex column so the header + search stay fixed and only the list scrolls. */}
+      <DialogContent className="flex max-h-[85dvh] flex-col gap-0 p-0">
+        <div className="flex flex-col gap-3 border-b p-6">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">More ideas</DialogTitle>
+            <DialogDescription>
+              Borrow an idea from another path, or write your own.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative">
+            <Search
+              className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-muted-foreground"
+              aria-hidden
+            />
+            <Input
+              id={searchId}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search ideas..."
+              aria-label="Search ideas"
+              className="pl-9"
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          {filtered.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No ideas match "{query}".</p>
+          ) : (
+            <PromptGroup
+              heading="From other paths"
+              prompts={filtered}
+              addedPromptIds={addedPromptIds}
+              onAdd={(prompt) => onAdd(prompt.id, prompt.title, prompt.description)}
+              pending={pending}
+            />
+          )}
+        </div>
+        <div className="border-t p-6">
           <form
             className="flex gap-2"
             onSubmit={(event) => {
               event.preventDefault()
               if (customTitle.trim().length === 0) return
-              addMutation.mutate({ promptId: null, title: customTitle.trim(), description: '' })
+              onAdd(null, customTitle.trim(), '')
+              setCustomTitle('')
             }}
           >
             <Input
               value={customTitle}
               onChange={(event) => setCustomTitle(event.target.value)}
-              placeholder="Or invent your own..."
+              placeholder="Invent your own..."
               aria-label="Custom activity"
               maxLength={120}
             />
-            <Button
-              type="submit"
-              disabled={customTitle.trim().length === 0 || addMutation.isPending}
-            >
+            <Button type="submit" disabled={customTitle.trim().length === 0 || pending}>
               Add
             </Button>
           </form>

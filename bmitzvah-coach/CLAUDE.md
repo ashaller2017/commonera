@@ -64,7 +64,7 @@ Rule of thumb: pure domain logic in `lib/` (trivially testable), I/O and DB in `
 ## Schema & reference content
 
 - **Schema is declarative.** Edit desired state in `supabase/schemas/*.sql` (pg-delta manages structure, RLS, policies, and grants — all of it). Then `pnpm db:sync` generates a migration, `pnpm db:reset` applies it plus the seed, `pnpm db:types` regenerates `database.ts`. Do not hand-write migrations; do not edit generated migrations. Confirm a clean round-trip with `pnpm db:sync` (it must report "No schema changes found").
-- **Reference content is code, the DB is its projection.** The six templates, their milestones, the activity-prompt bank, providers, the quiz, and stories are authored as typed constants in `src/lib/content/*`. `pnpm db:seed:gen` regenerates `supabase/seed.sql` from them; `db reset` loads it. `content.test.ts` keeps the constants honest. After editing content: regenerate the seed and reset.
+- **Reference content: the DB is authoritative; the TS files are first-boot defaults.** Content (templates, milestones, activity-prompt bank, providers, quiz, stories) is edited by CommonEra in the admin panel and lives in the DB. `src/lib/content/*` are the typed default dataset that seeds a fresh DB and the `content.test.ts` target; `pnpm db:seed:gen` regenerates `supabase/seed.sql` from them. The seed is **non-destructive** (`on conflict do nothing`), so re-running it (or a dev `db reset`, which starts from an empty DB) never overwrites admin edits. To change a default in code: edit the TS + regenerate the seed. To change live content: use the admin panel. There is no DB→TS export, so production content diverges from the defaults by design.
 - **The app reads content from the DB at runtime**, never from the `src/lib/content/*` data constants. `content.server.ts` maps rows back to the content types; `content.functions.ts` exposes them; the template catalog is delivered app-wide via the root loader and the `useTemplates()` hook; page-specific catalogs come from route loaders.
 
 ## Auth (the part to get right)
@@ -124,8 +124,19 @@ export const Route = createFileRoute('/_authed')({
 ## Data access
 
 - Reads/writes go through the RLS-scoped server client so the database enforces access. Prefer supabase-js with generated types (`Database` from `src/types/database.ts`) so query results are typed end to end.
-- Mutations live in `createServerFn({ method: 'POST' })`, validated with Zod, called from the client via `useServerFn` inside a TanStack Query `useMutation`. Loads call server functions directly from route loaders.
+- Mutations live in `createServerFn({ method: 'POST' })`, validated with Zod, called from the client via `useServerFn` inside a TanStack Query `useMutation`. Loads call server functions directly from route loaders. **Form submissions are the exception:** they run through the form's own lifecycle, not `useMutation` (see Forms).
 - The **service-role key bypasses RLS**. Use it only in explicitly server-only admin paths, never in a code path reachable from the client, and never behind a `VITE_` env var. If a task seems to need the service-role key, stop and flag it rather than reaching for it.
+
+## Forms
+
+Forms use **TanStack Form** with its composition API, wired to the basecn/base-ui field primitives. The kit lives in `src/components/form/`; `login.tsx` and `signup.tsx` are the reference implementations. Never hand-wire controlled inputs (`useState` per field) in a route.
+
+- **Build once, reuse.** `createFormHookContexts` + `createFormHook` (`src/components/form/index.ts`) export `useAppForm` / `withForm` / `withFieldGroup`. The kit ships `field.TextField`, `field.NumberField`, `field.TextareaField`, `field.SelectField`, `field.CheckboxField`, `field.SwitchField`, and `field.RadioGroupField` (used inside `<form.AppField>`), plus `form.SubmitButton` and `form.FormError` (inside `<form.AppForm>`). Each field component is bound via `useFieldContext` and structured after shadcn's tanstack-form design: a `Field` wrapping `FieldLabel` + the control + optional `FieldDescription` + `FieldError`, with `const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid` and `{isInvalid && <FieldError errors={field.state.meta.errors} />}`. Add a new control by building it on a `ui/` primitive that way and registering it in `createFormHook`.
+- **Validation is Zod at the form level:** `validators: { onSubmit: schema }` (shadcn's pattern). Field errors come from `field.state.meta.errors` and appear once `isInvalid` is true (touched + invalid), i.e. after a submit attempt.
+- **`NumberField` holds a real `number`.** Initialize its field in `defaultValues` to a number or `Number.NaN`, never `''` or `undefined`, so it stays a controlled input and an empty box fails a `z.number()` validator cleanly. `SelectField` / `RadioGroupField` take an `options` array and bind a `string`.
+- **Submission is form-owned.** `validators.onSubmitAsync` calls the server function and maps an expected `Result` failure to a form-level error (`return { form: message }`), which `FormError` surfaces via `errorMap.onSubmit`. The top-level `onSubmit` handler runs only on success (e.g. navigation). This is where the react-query `useMutation` rule does not apply.
+- **Mirror the server schema on the client.** A server `.validator()` throws on malformed input, so client schemas must be at least as strict as the server's; wrap the server call in try/catch so a rejected validation still resolves to a clean form-level message rather than an unhandled throw.
+- **Never disable the submit button on `!canSubmit`.** After a server failure `canSubmit` is false; the retry only works because the button disables on `isSubmitting` alone. Gating on `canSubmit` locks the user out until they edit a field.
 
 ## Server function rules
 
