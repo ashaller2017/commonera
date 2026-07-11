@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Common Era — Vibe Coding Sprint</title>
+    <style>
+      :root {
+        --bg: #fafafa;
+        --fg: #18181b;
+        --muted: #71717a;
+        --card: #ffffff;
+        --border: #e4e4e7;
+        --border-hover: #a1a1aa;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111113;
+          --fg: #f4f4f5;
+          --muted: #a1a1aa;
+          --card: #1b1b1f;
+          --border: #2e2e33;
+          --border-hover: #52525b;
+        }
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        display: flex; flex-direction: column; align-items: center;
+        padding: 10vh 24px 64px;
+      }
+      .kicker {
+        color: var(--muted); font-weight: 500; letter-spacing: 0.12em;
+        text-transform: uppercase; font-size: 12px;
+      }
+      h1 {
+        font-size: clamp(28px, 5vw, 42px);
+        font-weight: 650; letter-spacing: -0.02em;
+        margin: 8px 0 6px;
+      }
+      .sub { color: var(--muted); font-size: 15px; margin-bottom: 48px; }
+      .grid {
+        display: grid; gap: 16px; width: 100%; max-width: 960px;
+        grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      }
+      .card {
+        display: block; text-decoration: none; color: inherit;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .card:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      }
+      .emoji { font-size: 26px; display: block; margin-bottom: 14px; }
+      .card h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+      .card p { font-size: 13.5px; line-height: 1.55; color: var(--muted); }
+      .card.stub {
+        border-style: dashed;
+        opacity: 0.75;
+        cursor: default;
+      }
+      .card.stub:hover { transform: none; box-shadow: none; border-color: var(--border); }
+      .badge {
+        display: inline-block; margin-top: 12px;
+        font-size: 11px; font-weight: 500; letter-spacing: 0.06em;
+        text-transform: uppercase; color: var(--muted);
+        border: 1px solid var(--border); border-radius: 999px;
+        padding: 3px 10px;
+      }
+      footer { margin-top: 56px; font-size: 13px; color: var(--muted); }
+      footer a { color: inherit; }
+    </style>
+  </head>
+  <body>
+    <div class="kicker">Common Era</div>
+    <h1>Vibe Coding Sprint</h1>
+    <div class="sub">July 10–11, 2026 · Los Angeles</div>
+    <div class="grid"><div class="card stub"><span class="emoji">✨</span><h2>Bmitzvah 2.0</h2><p>Coming soon.</p><span class="badge">in progress</span></div><a class="card" href="./bmitzvah-coach/"><span class="emoji">📜</span><h2>The Living Scroll</h2><p>B'Mitzvah Confidence Coach — learn the Shema by touching a 3D Torah scroll. Your cursor becomes a yad; real cantorial audio follows your hand, word by word.</p></a><div class="card stub"><span class="emoji">✨</span><h2>Cosmic Calendar</h2><p>Coming soon.</p><span class="badge">in progress</span></div><div class="card stub"><span class="emoji">✨</span><h2>Digital Shabbat</h2><p>Coming soon.</p><span class="badge">in progress</span></div><div class="card stub"><span class="emoji">✨</span><h2>Simple Seder</h2><p>Coming soon.</p><span class="badge">in progress</span></div></div>
+    <footer>Built in a weekend · <a href="https://github.com/kbudelis/commonera">source</a></footer>
+  </body>
+</html>

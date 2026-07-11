@@ -1,0 +1,44 @@
+name: Deploy Pages (gallery + all projects)
+
+# One Pages site for the whole sprint repo:
+#   /<repo>/            -> gallery linking every project
+#   /<repo>/<project>/  -> that project's build (or static files)
+# Each deploy rebuilds ALL projects from main, so teams never overwrite
+# each other — a broken project is skipped, never blocking the rest.
+# Projects with a build step receive BASE_PATH=/<repo>/<project>/ (Vite:
+# use it as `base`; other bundlers have equivalents).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: bash .site/build-all.sh
+        env:
+          SITE_BASE: /${{ github.event.repository.name }}/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
