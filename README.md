@@ -19,10 +19,6 @@ When you're done, your folder should contain your full project code plus a `READ
 
 ## Deliverables checklist
 
-- [ ] Latest code pushed to your project folder
-- [ ] `README.md` inside your folder
-- [ ] Prototype deployed + link in your README (should stay live for at least 1 month and be accessible in incognito mode - no login to a specific tool needed)
-- [ ] Video walkthrough uploaded to the shared Google Drive
-- [ ] Your slide filled out in the shared Google Slides deck
+See here: https://docs.google.com/document/d/1-FM5nA3n9IBApQ28xMknZo6epechSapeRrOtGJuTF28/edit?tab=t.0
 
 Questions? Reach out to Kris — kbudelis@gmail.com
