@@ -19,6 +19,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -593,13 +594,11 @@ function MoreIdeasDialog({
       </DialogTrigger>
       {/* Flex column so the header + search stay fixed and only the list scrolls. */}
       <DialogContent className="flex max-h-[85dvh] flex-col gap-0 p-0">
-        <div className="flex flex-col gap-3 border-b p-6">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl">More ideas</DialogTitle>
-            <DialogDescription>
-              Borrow an idea from another path, or write your own.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogHeader className="gap-3 border-b p-6">
+          <DialogTitle className="font-display text-2xl">More ideas</DialogTitle>
+          <DialogDescription>
+            Borrow an idea from another path, or write your own.
+          </DialogDescription>
           <div className="relative">
             <Search
               className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-muted-foreground"
@@ -614,7 +613,7 @@ function MoreIdeasDialog({
               className="pl-9"
             />
           </div>
-        </div>
+        </DialogHeader>
         <div className="flex-1 overflow-y-auto p-6">
           {filtered.length === 0 ? (
             <p className="text-sm text-muted-foreground">No ideas match "{query}".</p>
@@ -628,9 +627,9 @@ function MoreIdeasDialog({
             />
           )}
         </div>
-        <div className="border-t p-6">
+        <DialogFooter className="border-t p-6">
           <form
-            className="flex gap-2"
+            className="flex w-full gap-2"
             onSubmit={(event) => {
               event.preventDefault()
               if (customTitle.trim().length === 0) return
@@ -649,7 +648,7 @@ function MoreIdeasDialog({
               Add
             </Button>
           </form>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

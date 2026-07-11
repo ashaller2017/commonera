@@ -176,6 +176,7 @@ export type Database = {
           name: string
           quiz_answers: Json
           quiz_scores: Json
+          share_slug: string | null
           template: Database["public"]["Enums"]["journey_template"]
           timeline: string
         }
@@ -187,6 +188,7 @@ export type Database = {
           name: string
           quiz_answers?: Json
           quiz_scores?: Json
+          share_slug?: string | null
           template: Database["public"]["Enums"]["journey_template"]
           timeline?: string
         }
@@ -198,6 +200,7 @@ export type Database = {
           name?: string
           quiz_answers?: Json
           quiz_scores?: Json
+          share_slug?: string | null
           template?: Database["public"]["Enums"]["journey_template"]
           timeline?: string
         }
@@ -285,6 +288,39 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      provider_favorite: {
+        Row: {
+          child_id: string
+          created_at: string
+          provider_key: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          provider_key: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          provider_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_favorite_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "provider_favorite_provider_key_fkey"
+            columns: ["provider_key"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["key"]
           },
         ]
       }
@@ -642,6 +678,8 @@ export type Database = {
     Functions: {
       can_view_journey: { Args: { jid: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      is_child: { Args: never; Returns: boolean }
+      is_parent: { Args: never; Returns: boolean }
       is_parent_of: { Args: { child: string }; Returns: boolean }
       owns_journey: { Args: { jid: string }; Returns: boolean }
     }

@@ -11,9 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoriesRouteImport } from './routes/stories'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShareSlugRouteImport } from './routes/share.$slug'
+import { Route as OgSlugRouteImport } from './routes/og.$slug'
 import { Route as AuthedProvidersRouteImport } from './routes/_authed/providers'
 import { Route as AuthedParentRouteImport } from './routes/_authed/parent'
 import { Route as AuthedKidRouteImport } from './routes/_authed/kid'
@@ -51,9 +55,19 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
@@ -63,6 +77,16 @@ const AuthedRoute = AuthedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShareSlugRoute = ShareSlugRouteImport.update({
+  id: '/share/$slug',
+  path: '/share/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgSlugRoute = OgSlugRouteImport.update({
+  id: '/og/$slug',
+  path: '/og/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedProvidersRoute = AuthedProvidersRouteImport.update({
@@ -205,13 +229,17 @@ const AuthedAdminAccountsParentIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/stories': typeof StoriesRoute
   '/admin': typeof AuthedAdminRouteWithChildren
   '/kid': typeof AuthedKidRouteWithChildren
   '/parent': typeof AuthedParentRouteWithChildren
   '/providers': typeof AuthedProvidersRoute
+  '/og/$slug': typeof OgSlugRoute
+  '/share/$slug': typeof ShareSlugRoute
   '/admin/accounts': typeof AuthedAdminAccountsRouteWithChildren
   '/admin/admins': typeof AuthedAdminAdminsRoute
   '/admin/content': typeof AuthedAdminContentRouteWithChildren
@@ -237,10 +265,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/stories': typeof StoriesRoute
   '/providers': typeof AuthedProvidersRoute
+  '/og/$slug': typeof OgSlugRoute
+  '/share/$slug': typeof ShareSlugRoute
   '/admin/admins': typeof AuthedAdminAdminsRoute
   '/kid/card': typeof AuthedKidCardRoute
   '/kid/celebration': typeof AuthedKidCelebrationRoute
@@ -266,13 +298,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/stories': typeof StoriesRoute
   '/_authed/admin': typeof AuthedAdminRouteWithChildren
   '/_authed/kid': typeof AuthedKidRouteWithChildren
   '/_authed/parent': typeof AuthedParentRouteWithChildren
   '/_authed/providers': typeof AuthedProvidersRoute
+  '/og/$slug': typeof OgSlugRoute
+  '/share/$slug': typeof ShareSlugRoute
   '/_authed/admin/accounts': typeof AuthedAdminAccountsRouteWithChildren
   '/_authed/admin/admins': typeof AuthedAdminAdminsRoute
   '/_authed/admin/content': typeof AuthedAdminContentRouteWithChildren
@@ -300,13 +336,17 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/stories'
     | '/admin'
     | '/kid'
     | '/parent'
     | '/providers'
+    | '/og/$slug'
+    | '/share/$slug'
     | '/admin/accounts'
     | '/admin/admins'
     | '/admin/content'
@@ -332,10 +372,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/stories'
     | '/providers'
+    | '/og/$slug'
+    | '/share/$slug'
     | '/admin/admins'
     | '/kid/card'
     | '/kid/celebration'
@@ -360,13 +404,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/stories'
     | '/_authed/admin'
     | '/_authed/kid'
     | '/_authed/parent'
     | '/_authed/providers'
+    | '/og/$slug'
+    | '/share/$slug'
     | '/_authed/admin/accounts'
     | '/_authed/admin/admins'
     | '/_authed/admin/content'
@@ -394,9 +442,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   StoriesRoute: typeof StoriesRoute
+  OgSlugRoute: typeof OgSlugRoute
+  ShareSlugRoute: typeof ShareSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -415,11 +467,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed': {
@@ -434,6 +500,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/share/$slug': {
+      id: '/share/$slug'
+      path: '/share/$slug'
+      fullPath: '/share/$slug'
+      preLoaderRoute: typeof ShareSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og/$slug': {
+      id: '/og/$slug'
+      path: '/og/$slug'
+      fullPath: '/og/$slug'
+      preLoaderRoute: typeof OgSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/providers': {
@@ -733,9 +813,13 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   StoriesRoute: StoriesRoute,
+  OgSlugRoute: OgSlugRoute,
+  ShareSlugRoute: ShareSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

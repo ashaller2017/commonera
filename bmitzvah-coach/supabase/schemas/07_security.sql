@@ -11,8 +11,10 @@
 --                                (no update/delete)
 --   milestones / activities / -> read if you can view the journey; write if you
 --   celebration_plans            own it
---   provider_interest         -> insert/read own (directory gate re-checked in
---                                the server function)
+--   provider_interest         -> parent inserts own lead; read own (directory
+--                                gate re-checked in the server function)
+--   provider_favorite         -> child inserts/deletes own heart; parent reads
+--                                their children's (gate re-checked server-side)
 
 -- ---------------------------------------------------------------------------
 -- Security-definer helper grants. Revoke the implicit PUBLIC execute, then hand
@@ -24,6 +26,11 @@ revoke all on function public.can_view_journey(uuid) from public;
 grant execute on function public.is_parent_of(uuid) to authenticated;
 grant execute on function public.owns_journey(uuid) to authenticated;
 grant execute on function public.can_view_journey(uuid) to authenticated;
+
+revoke all on function public.is_parent() from public;
+revoke all on function public.is_child() from public;
+grant execute on function public.is_parent() to authenticated;
+grant execute on function public.is_child() to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Reference catalog: read-only public content. RLS on, select granted to the
@@ -94,6 +101,7 @@ grant select, insert, update, delete on public.milestones to authenticated;
 grant select, insert, update, delete on public.journey_activities to authenticated;
 grant select, insert, update, delete on public.celebration_plans to authenticated;
 grant select, insert on public.provider_interest to authenticated;
+grant select, insert, delete on public.provider_favorite to authenticated;
 
 grant select, insert, update, delete on public.profiles to service_role;
 grant select, insert, update, delete on public.journeys to service_role;
@@ -101,6 +109,7 @@ grant select, insert, update, delete on public.milestones to service_role;
 grant select, insert, update, delete on public.journey_activities to service_role;
 grant select, insert, update, delete on public.celebration_plans to service_role;
 grant select, insert, update, delete on public.provider_interest to service_role;
+grant select, insert, update, delete on public.provider_favorite to service_role;
 
 -- ---------------------------------------------------------------------------
 -- User data: RLS.
@@ -111,6 +120,7 @@ alter table public.milestones enable row level security;
 alter table public.journey_activities enable row level security;
 alter table public.celebration_plans enable row level security;
 alter table public.provider_interest enable row level security;
+alter table public.provider_favorite enable row level security;
 
 create policy profiles_select_own_or_children on public.profiles
   for select to authenticated
@@ -184,11 +194,26 @@ create policy celebration_update on public.celebration_plans
 
 create policy interest_insert_own on public.provider_interest
   for insert to authenticated
-  with check (created_by = (select auth.uid()));
+  with check (created_by = (select auth.uid()) and public.is_parent());
 
 create policy interest_select_own on public.provider_interest
   for select to authenticated
   using (created_by = (select auth.uid()));
+
+-- Favorites: the child owns their hearts (insert/delete); a parent reads their
+-- own children's via is_parent_of. Child-only insert mirrors the parent-only
+-- lead insert above.
+create policy favorite_select_own_or_parent on public.provider_favorite
+  for select to authenticated
+  using (child_id = (select auth.uid()) or public.is_parent_of(child_id));
+
+create policy favorite_insert_own on public.provider_favorite
+  for insert to authenticated
+  with check (child_id = (select auth.uid()) and public.is_child());
+
+create policy favorite_delete_own on public.provider_favorite
+  for delete to authenticated
+  using (child_id = (select auth.uid()));
 
 -- ---------------------------------------------------------------------------
 -- Admin (CommonEra operators). is_admin() is the boundary. Admins read all user
@@ -214,6 +239,8 @@ create policy activities_admin_read on public.journey_activities
 create policy celebration_admin_read on public.celebration_plans
   for select to authenticated using (public.is_admin());
 create policy interest_admin_read on public.provider_interest
+  for select to authenticated using (public.is_admin());
+create policy favorite_admin_read on public.provider_favorite
   for select to authenticated using (public.is_admin());
 
 -- Full write on the reference catalog for admins. Public read stays open via the

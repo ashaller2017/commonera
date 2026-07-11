@@ -1,7 +1,7 @@
 -- Security-definer helpers so journey-scoped policies do not re-enter RLS on
 -- profiles/journeys for every row. Function EXECUTE grants (revoke from public,
--- grant to authenticated) live in the rls_grants migration, since pg-delta does
--- not diff privileges.
+-- grant to authenticated) live alongside the other privilege statements in
+-- 07_security.sql.
 
 create function public.is_parent_of(child uuid)
 returns boolean
@@ -63,5 +63,39 @@ as $$
     from public.profiles p
     where p.id = (select auth.uid())
       and p.role = 'admin'
+  );
+$$;
+
+-- True when the current user is a parent. Backs the lead-insert policy: only a
+-- parent submits a provider_interest lead, never a child.
+create function public.is_parent()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = (select auth.uid())
+      and p.role = 'parent'
+  );
+$$;
+
+-- True when the current user is a child. Backs the favorite-insert policy: only
+-- a child hearts a guide.
+create function public.is_child()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = (select auth.uid())
+      and p.role = 'child'
   );
 $$;

@@ -121,6 +121,12 @@ function ParentLoginForm() {
             <field.TextField label="Password" type="password" autoComplete="current-password" />
           )}
         </form.AppField>
+        <Link
+          to="/forgot-password"
+          className="-mt-1 self-end text-sm font-bold text-primary underline-offset-4 hover:underline"
+        >
+          Forgot password?
+        </Link>
         <form.AppForm>
           <form.FormError />
           <form.SubmitButton size="lg" submittingLabel="Checking...">

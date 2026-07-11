@@ -10,6 +10,10 @@ create table public.journeys (
   comfort_level text not null default '',
   quiz_answers jsonb not null default '{}',
   quiz_scores jsonb not null default '{}',
+  -- Unguessable public share id, minted at creation. Nullable so non-app inserts
+  -- are allowed; the app always sets it. The slug is the only key to the public
+  -- share card, so it must stay unique.
+  share_slug text unique,
   created_at timestamptz not null default now()
 );
 

@@ -1,8 +1,10 @@
+import { randomBytes } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { ComfortKey, TemplateKey, TimelineKey } from '@/lib/content/types'
 import { type QuizAnswers, scoreQuiz } from '@/lib/quiz/scoring'
 import { err, ok, type Result } from '@/lib/result'
 import type { Database } from '@/types/database'
+import { getCurrentUser } from '@/utils/auth.server'
 import { getQuizQuestions, getTemplateMilestones } from '@/utils/content.server'
 
 type Supabase = SupabaseClient<Database>
@@ -40,9 +42,15 @@ export type JourneyView = {
   readonly name: string
   readonly timeline: TimelineKey | null
   readonly comfort: ComfortKey | null
+  readonly shareSlug: string | null
   readonly milestones: readonly MilestoneView[]
   readonly activities: readonly ActivityView[]
   readonly celebration: CelebrationView | null
+}
+
+// An unguessable, URL-safe id for the public share link (72 bits of entropy).
+export function makeShareSlug(): string {
+  return randomBytes(9).toString('base64url')
 }
 
 async function requireOwnJourneyId(supabase: Supabase): Promise<string | null> {
@@ -64,7 +72,7 @@ export async function getJourneyView(
 ): Promise<JourneyView | null> {
   const { data: journey } = await supabase
     .from('journeys')
-    .select('id, child_id, template, name, timeline, comfort_level')
+    .select('id, child_id, template, name, timeline, comfort_level, share_slug')
     .eq('child_id', childId)
     .maybeSingle()
   if (!journey) return null
@@ -94,6 +102,7 @@ export async function getJourneyView(
     name: journey.name,
     timeline: (journey.timeline || null) as TimelineKey | null,
     comfort: (journey.comfort_level || null) as ComfortKey | null,
+    shareSlug: journey.share_slug,
     milestones: (milestones ?? []).map((m) => ({
       id: m.id,
       title: m.title,
@@ -158,6 +167,7 @@ export async function createJourney(
       comfort_level: input.comfort,
       quiz_answers: input.answers as Record<string, string[]>,
       quiz_scores: scores,
+      share_slug: makeShareSlug(),
     })
     .select('id')
     .single()
@@ -409,19 +419,21 @@ export type ExpressInterestInput = {
   readonly note: string
 }
 
-export type ExpressInterestError = 'not-signed-in' | 'locked' | 'write-failed'
+export type ExpressInterestError = 'not-signed-in' | 'not-parent' | 'locked' | 'write-failed'
 
 export async function expressInterest(
   supabase: Supabase,
   input: ExpressInterestInput,
 ): Promise<Result<null, ExpressInterestError>> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return err('not-signed-in')
+  const me = await getCurrentUser(supabase)
+  if (!me) return err('not-signed-in')
+  // The lead is the parent's to send, not the kid's: a kid only favorites. RLS
+  // enforces this too (interest_insert_own requires is_parent()); checking here
+  // turns that into a clean typed error instead of a write failure.
+  if (me.role !== 'parent') return err('not-parent')
 
-  // The directory gate is authorization, not decoration: re-check it here so
-  // a locked user cannot submit interest by calling the function directly.
+  // The directory gate is authorization, not decoration: re-check it here so a
+  // locked user cannot submit interest by calling the function directly.
   const access = await getDirectoryAccess(supabase)
   if (!access.unlocked) return err('locked')
 
@@ -430,11 +442,74 @@ export async function expressInterest(
     name: input.name,
     email: input.email,
     note: input.note,
-    created_by: user.id,
+    created_by: me.id,
   })
   if (error) {
     console.error('expressInterest failed', error)
     return err('write-failed')
   }
   return ok(null)
+}
+
+export type SetFavoriteInput = {
+  readonly providerKey: string
+  readonly favorited: boolean
+}
+
+export type SetFavoriteError = 'not-signed-in' | 'not-child' | 'locked' | 'write-failed'
+
+// A kid's lightweight "I'm interested" on a guide. Favoriting is gated on a
+// completed journey (the same reward gate as the lead), but UN-favoriting is
+// always allowed: milestones can regress, and a kid must always be able to
+// withdraw a signal they set. RLS scopes both writes to the kid's own rows.
+export async function setFavorite(
+  supabase: Supabase,
+  input: SetFavoriteInput,
+): Promise<Result<null, SetFavoriteError>> {
+  const me = await getCurrentUser(supabase)
+  if (!me) return err('not-signed-in')
+  if (me.role !== 'child') return err('not-child')
+
+  if (!input.favorited) {
+    const { error } = await supabase
+      .from('provider_favorite')
+      .delete()
+      .eq('child_id', me.id)
+      .eq('provider_key', input.providerKey)
+    if (error) {
+      console.error('setFavorite (remove) failed', error)
+      return err('write-failed')
+    }
+    return ok(null)
+  }
+
+  const access = await getDirectoryAccess(supabase)
+  if (!access.unlocked) return err('locked')
+
+  // Idempotent: re-tapping an already-favorited guide is a no-op, not an error.
+  const { error } = await supabase
+    .from('provider_favorite')
+    .upsert({ child_id: me.id, provider_key: input.providerKey }, { ignoreDuplicates: true })
+  if (error) {
+    console.error('setFavorite (add) failed', error)
+    return err('write-failed')
+  }
+  return ok(null)
+}
+
+export type ProviderFavorite = {
+  readonly childId: string
+  readonly providerKey: string
+}
+
+// Favorites visible to the caller: a kid sees their own, a parent sees all of
+// their children's. RLS (favorite_select_own_or_parent) does the scoping, so
+// this is one query for both roles.
+export async function listFavorites(supabase: Supabase): Promise<readonly ProviderFavorite[]> {
+  const { data, error } = await supabase
+    .from('provider_favorite')
+    .select('child_id, provider_key')
+    .order('created_at')
+  if (error || !data) return []
+  return data.map((row) => ({ childId: row.child_id, providerKey: row.provider_key }))
 }

@@ -7,9 +7,11 @@ import {
   expressInterest,
   getDirectoryAccess,
   getJourneyView,
+  listFavorites,
   listKids,
   removeActivity,
   setActivityStatus,
+  setFavorite,
   setMilestoneStatus,
   upsertCelebration,
 } from '@/utils/journeys.server'
@@ -61,6 +63,13 @@ const ExpressInterestSchema = z.object({
 })
 
 const ChildIdSchema = z.object({ childId: z.uuid() })
+
+const SetFavoriteSchema = z.object({
+  // Provider validity is enforced by the provider_favorite.provider_key foreign
+  // key, so the catalog does not need bundling here (as with ExpressInterest).
+  providerKey: z.string().trim().min(1).max(80),
+  favorited: z.boolean(),
+})
 
 export const fetchOwnJourneyFn = createServerFn({ method: 'GET' }).handler(async () => {
   const supabase = getSupabaseServerClient()
@@ -118,4 +127,12 @@ export const expressInterestFn = createServerFn({ method: 'POST' })
 
 export const fetchDirectoryAccessFn = createServerFn({ method: 'GET' }).handler(async () =>
   getDirectoryAccess(getSupabaseServerClient()),
+)
+
+export const setFavoriteFn = createServerFn({ method: 'POST' })
+  .validator(SetFavoriteSchema)
+  .handler(async ({ data }) => setFavorite(getSupabaseServerClient(), data))
+
+export const fetchFavoritesFn = createServerFn({ method: 'GET' }).handler(async () =>
+  listFavorites(getSupabaseServerClient()),
 )

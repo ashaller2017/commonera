@@ -6,6 +6,9 @@ import {
   loginWithPassword,
   logout,
   registerKid,
+  requestPasswordReset,
+  resetChildPassword,
+  resetPasswordWithToken,
   signupParent,
 } from '@/utils/auth.server'
 import { getSupabaseServerClient } from '@/utils/supabase'
@@ -62,7 +65,38 @@ export const registerKidFn = createServerFn({ method: 'POST' })
   .validator(RegisterKidSchema)
   .handler(async ({ data }) => registerKid(getSupabaseServerClient(), data))
 
+const ResetChildPasswordSchema = z.object({
+  childId: z.uuid(),
+  password: z.string().min(6).max(72),
+})
+
+export const resetChildPasswordFn = createServerFn({ method: 'POST' })
+  .validator(ResetChildPasswordSchema)
+  .handler(async ({ data }) =>
+    resetChildPassword(getSupabaseServerClient(), data.childId, data.password),
+  )
+
 export const logoutFn = createServerFn({ method: 'POST' }).handler(async () => {
   await logout(getSupabaseServerClient())
   return null
 })
+
+const RequestPasswordResetSchema = z.object({ email: z.email() })
+
+export const requestPasswordResetFn = createServerFn({ method: 'POST' })
+  .validator(RequestPasswordResetSchema)
+  .handler(async ({ data }) => {
+    await requestPasswordReset(data.email)
+    return null
+  })
+
+const ResetPasswordSchema = z.object({
+  tokenHash: z.string().min(1),
+  password: z.string().min(8).max(72),
+})
+
+export const resetPasswordFn = createServerFn({ method: 'POST' })
+  .validator(ResetPasswordSchema)
+  .handler(async ({ data }) =>
+    resetPasswordWithToken(getSupabaseServerClient(), data.tokenHash, data.password),
+  )

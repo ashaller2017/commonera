@@ -1,13 +1,29 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft, Check, Circle } from 'lucide-react'
 import { motion, type Variants } from 'motion/react'
+import { useState } from 'react'
+import { z } from 'zod'
+import { useAppForm } from '@/components/form'
 import { TemplateChip } from '@/components/template-chip'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { FieldGroup } from '@/components/ui/field'
 import { TEMPLATE_PALETTE } from '@/lib/content/palette'
 import { journeyProgress } from '@/lib/journey/progress'
 import { cn } from '@/lib/utils'
+import { resetChildPasswordFn } from '@/utils/auth.functions'
+import type { ResetChildPasswordError } from '@/utils/auth.server'
 import { fetchKidJourneyFn, fetchKidsFn } from '@/utils/journeys.functions'
 import type { CelebrationView, JourneyView } from '@/utils/journeys.server'
+
+type KidRef = { readonly id: string; readonly displayName: string }
 
 export const Route = createFileRoute('/_authed/parent/kids/$childId')({
   loader: async ({ params }) => {
@@ -36,9 +52,8 @@ const fadeUp: Variants = {
 function KidJourneyPage() {
   const { journey, kid } = Route.useLoaderData()
   if (!kid) return <KidNotFound />
-  const firstName = kid.displayName.split(' ')[0] ?? kid.displayName
-  if (!journey) return <NoJourney firstName={firstName} />
-  return <ReadOnlyJourney journey={journey} firstName={firstName} />
+  if (!journey) return <NoJourney kid={kid} />
+  return <ReadOnlyJourney journey={journey} kid={kid} />
 }
 
 function KidNotFound() {
@@ -53,24 +68,35 @@ function KidNotFound() {
   )
 }
 
-function BackBar({ firstName }: { firstName: string }) {
+function BackBar({ kid }: { kid: KidRef }) {
+  const firstName = kid.displayName.split(' ')[0] || kid.displayName
+  const [resetting, setResetting] = useState(false)
   return (
-    <div className="flex flex-col gap-1">
-      <Link
-        to="/parent"
-        className="inline-flex w-fit items-center gap-1.5 text-sm font-bold text-primary underline-offset-4 hover:underline"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back to family
-      </Link>
-      <p className="text-sm text-muted-foreground">
-        This is {firstName}'s design. Cheer, don't steer.
-      </p>
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-1">
+        <Link
+          to="/parent"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-bold text-primary underline-offset-4 hover:underline"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          Back to family
+        </Link>
+        <p className="text-sm text-muted-foreground">
+          This is {firstName}'s design. Cheer, don't steer.
+        </p>
+      </div>
+      <Button variant="outline" size="sm" className="shrink-0" onClick={() => setResetting(true)}>
+        Reset password
+      </Button>
+      {resetting ? (
+        <ResetChildPasswordDialog kid={kid} onClose={() => setResetting(false)} />
+      ) : null}
     </div>
   )
 }
 
-function NoJourney({ firstName }: { firstName: string }) {
+function NoJourney({ kid }: { kid: KidRef }) {
+  const firstName = kid.displayName.split(' ')[0] || kid.displayName
   return (
     <motion.div
       className="flex flex-col gap-8"
@@ -79,7 +105,7 @@ function NoJourney({ firstName }: { firstName: string }) {
       animate="show"
     >
       <motion.div variants={fadeUp}>
-        <BackBar firstName={firstName} />
+        <BackBar kid={kid} />
       </motion.div>
       <motion.section
         className="flex flex-col gap-3 rounded-3xl border bg-secondary/40 p-8 sm:p-10"
@@ -97,7 +123,8 @@ function NoJourney({ firstName }: { firstName: string }) {
   )
 }
 
-function ReadOnlyJourney({ journey, firstName }: { journey: JourneyView; firstName: string }) {
+function ReadOnlyJourney({ journey, kid }: { journey: JourneyView; kid: KidRef }) {
+  const firstName = kid.displayName.split(' ')[0] || kid.displayName
   const palette = TEMPLATE_PALETTE[journey.template]
   const progress = journeyProgress(journey.milestones.map((m) => m.status))
   const celebration = journey.celebration
@@ -113,7 +140,7 @@ function ReadOnlyJourney({ journey, firstName }: { journey: JourneyView; firstNa
       animate="show"
     >
       <motion.div variants={fadeUp}>
-        <BackBar firstName={firstName} />
+        <BackBar kid={kid} />
       </motion.div>
 
       <motion.section
@@ -267,5 +294,91 @@ function CelebrationPanel({ celebration }: { celebration: CelebrationView }) {
           ))}
       </dl>
     </section>
+  )
+}
+
+const CHILD_RESET_ERROR_COPY: Record<ResetChildPasswordError, string> = {
+  'not-a-parent': "You don't have permission to do that.",
+  'not-your-child': "That's not one of your kids.",
+  'reset-failed': "Couldn't reset the password. Try again.",
+}
+
+const resetChildSchema = z.object({ password: z.string().min(6, 'At least 6 characters.') })
+
+function ResetChildPasswordDialog({ kid, onClose }: { kid: KidRef; onClose: () => void }) {
+  const firstName = kid.displayName.split(' ')[0] || kid.displayName
+  const [done, setDone] = useState(false)
+
+  const form = useAppForm({
+    defaultValues: { password: '' },
+    validators: {
+      onSubmit: resetChildSchema,
+      onSubmitAsync: async ({ value }) => {
+        try {
+          const result = await resetChildPasswordFn({
+            data: { childId: kid.id, password: value.password },
+          })
+          return result.ok ? null : { form: CHILD_RESET_ERROR_COPY[result.error] }
+        } catch {
+          return { form: CHILD_RESET_ERROR_COPY['reset-failed'] }
+        }
+      },
+    },
+    onSubmit: () => setDone(true),
+  })
+
+  return (
+    <Dialog open onOpenChange={(next) => (next ? null : onClose())}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl">Reset {firstName}'s password</DialogTitle>
+        </DialogHeader>
+        {done ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              Done. {firstName} can log in with the new password now. Share it with them somewhere
+              safe.
+            </p>
+            <DialogFooter>
+              <Button type="button" onClick={onClose}>
+                Close
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              void form.handleSubmit()
+            }}
+          >
+            <FieldGroup className="gap-4">
+              <form.AppField name="password">
+                {(field) => (
+                  <field.TextField
+                    label="New password"
+                    type="password"
+                    autoComplete="new-password"
+                    description="At least 6 characters. You'll share this with your kid."
+                  />
+                )}
+              </form.AppField>
+              <form.AppForm>
+                <div className="flex flex-col gap-3">
+                  <form.FormError />
+                  <DialogFooter>
+                    <DialogClose render={<Button type="button" variant="ghost" />}>
+                      Cancel
+                    </DialogClose>
+                    <form.SubmitButton submittingLabel="Saving...">Set password</form.SubmitButton>
+                  </DialogFooter>
+                </div>
+              </form.AppForm>
+            </FieldGroup>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }
