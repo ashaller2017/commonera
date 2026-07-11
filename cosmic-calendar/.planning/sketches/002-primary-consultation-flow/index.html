@@ -1,0 +1,2468 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <title>Cosmic Calendar — Primary Consultation Flow Sketch</title>
+    <link id="theme-link" rel="stylesheet" href="../themes/default.css">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --chrome-height: 82px;
+        --hairline: color-mix(in srgb, var(--color-text) 18%, transparent);
+        --quiet-line: color-mix(in srgb, var(--color-text) 10%, transparent);
+        --warm-wash: color-mix(in srgb, var(--color-accent) 14%, transparent);
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        min-width: 320px;
+        margin: 0;
+        padding-top: var(--chrome-height);
+        overflow-x: hidden;
+        color: var(--color-text);
+        background:
+          radial-gradient(circle at 20% 12%, color-mix(in srgb, var(--color-accent) 8%, transparent), transparent 26rem),
+          radial-gradient(circle at 76% 68%, rgba(103, 124, 202, 0.16), transparent 34rem),
+          linear-gradient(155deg, var(--color-bg-deep), var(--color-bg) 58%, var(--color-bg-deep));
+        font-family: var(--font-sans);
+        line-height: 1.5;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        content: "";
+        opacity: 0.44;
+        background-image:
+          radial-gradient(circle at 12% 23%, rgba(255, 255, 255, 0.58) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 73% 14%, rgba(255, 255, 255, 0.46) 0 1px, transparent 1.4px),
+          radial-gradient(circle at 88% 72%, rgba(255, 255, 255, 0.36) 0 1px, transparent 1.5px),
+          radial-gradient(circle at 31% 81%, rgba(255, 255, 255, 0.4) 0 1px, transparent 1.4px);
+        background-size: 210px 210px, 280px 280px, 340px 340px, 390px 390px;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        color: inherit;
+      }
+
+      button,
+      summary,
+      [role="button"] {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 3px;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .sketch-chrome {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 900;
+        height: var(--chrome-height);
+        border-bottom: 1px solid var(--hairline);
+        background: color-mix(in srgb, var(--color-bg-deep) 88%, transparent);
+        box-shadow: var(--shadow-sm);
+        backdrop-filter: blur(18px);
+      }
+
+      .variant-nav {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        height: 54px;
+        padding: 8px max(12px, env(safe-area-inset-left));
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .variant-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      .variant-tab {
+        flex: 0 0 auto;
+        min-height: 36px;
+        padding: 8px 12px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-full);
+        color: var(--color-text-muted);
+        background: transparent;
+        cursor: pointer;
+        font-size: var(--text-xs);
+        font-weight: 650;
+        letter-spacing: 0.04em;
+        transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+      }
+
+      .variant-tab:hover {
+        color: var(--color-text);
+        border-color: var(--hairline);
+      }
+
+      .variant-tab.active {
+        color: var(--color-bg-deep);
+        border-color: var(--color-accent);
+        background: var(--color-accent);
+      }
+
+      .prototype-strip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        height: 28px;
+        padding: 0 max(14px, env(safe-area-inset-left));
+        border-top: 1px solid var(--quiet-line);
+        color: var(--color-text-muted);
+        font-size: 10px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      .prototype-strip strong {
+        color: var(--color-accent);
+        font-weight: 700;
+      }
+
+      #sketch-frame {
+        width: 100%;
+        max-width: none;
+        min-height: calc(100svh - var(--chrome-height));
+        margin: 0 auto;
+        overflow: clip;
+        border-inline: 1px solid transparent;
+        transition: max-width 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+      }
+
+      body.previewing #sketch-frame {
+        border-color: var(--hairline);
+        box-shadow: 0 20px 90px rgba(0, 0, 0, 0.46);
+      }
+
+      .variant {
+        display: none;
+        min-height: calc(100svh - var(--chrome-height));
+      }
+
+      .variant.active {
+        display: block;
+        animation: variant-in 0.34s ease both;
+      }
+
+      @keyframes variant-in {
+        from {
+          opacity: 0;
+          transform: translateY(7px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--color-accent);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .microcopy {
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+      }
+
+      .display-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(3rem, 13vw, 7.8rem);
+        font-weight: 400;
+        line-height: 0.92;
+        letter-spacing: -0.045em;
+      }
+
+      .section-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2.1rem, 8vw, 4rem);
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .action,
+      .quiet-action,
+      .icon-action {
+        min-height: 44px;
+        border: 1px solid var(--color-accent);
+        cursor: pointer;
+        transition: transform 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+      }
+
+      .action {
+        padding: 11px 18px;
+        border-radius: var(--radius-full);
+        color: var(--color-bg-deep);
+        background: var(--color-accent);
+        font-size: var(--text-sm);
+        font-weight: 750;
+      }
+
+      .quiet-action {
+        padding: 10px 15px;
+        border-color: var(--hairline);
+        border-radius: var(--radius-full);
+        color: var(--color-text);
+        background: color-mix(in srgb, var(--color-surface) 78%, transparent);
+        font-size: var(--text-sm);
+      }
+
+      .icon-action {
+        display: inline-grid;
+        width: 44px;
+        place-items: center;
+        border-color: var(--hairline);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--color-surface) 74%, transparent);
+      }
+
+      .action:hover,
+      .quiet-action:hover,
+      .icon-action:hover {
+        transform: translateY(-2px);
+      }
+
+      .quiet-action:hover,
+      .icon-action:hover {
+        border-color: var(--color-accent);
+        background: var(--warm-wash);
+      }
+
+      .action:active,
+      .quiet-action:active,
+      .icon-action:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .surface {
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(145deg, color-mix(in srgb, var(--color-surface) 88%, transparent), color-mix(in srgb, var(--color-bg-deep) 68%, transparent));
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(16px);
+      }
+
+      .metadata-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .metadata-row li {
+        padding: 6px 9px;
+        border: 1px solid var(--quiet-line);
+        border-radius: var(--radius-full);
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+      }
+
+      .share-card {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+      }
+
+      .share-card::before {
+        position: absolute;
+        inset: 0;
+        z-index: -2;
+        content: "";
+        background:
+          radial-gradient(circle at 72% 16%, var(--warm-wash), transparent 26%),
+          linear-gradient(155deg, color-mix(in srgb, var(--color-bg) 72%, #020510), var(--color-bg-deep));
+      }
+
+      .share-card::after {
+        position: absolute;
+        inset: 18px;
+        z-index: -1;
+        border: 1px solid var(--quiet-line);
+        border-radius: calc(var(--radius-lg) - 5px);
+        pointer-events: none;
+        content: "";
+      }
+
+      .hebrew-glyph {
+        font-family: var(--font-hebrew);
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .moon-mark {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        aspect-ratio: 1;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--color-accent) 80%, white);
+        border-radius: 50%;
+        background: var(--color-accent);
+        box-shadow: 0 0 25px color-mix(in srgb, var(--color-accent) 22%, transparent);
+      }
+
+      .moon-mark::after {
+        position: absolute;
+        top: -2px;
+        left: -9px;
+        width: 34px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: var(--color-bg-deep);
+        content: "";
+      }
+
+      /* Variant A — editorial almanac */
+      .almanac {
+        width: min(100%, 1180px);
+        margin: 0 auto;
+      }
+
+      .almanac-hero {
+        position: relative;
+        display: grid;
+        min-height: calc(100svh - var(--chrome-height));
+        padding: clamp(36px, 8vw, 90px) clamp(20px, 7vw, 86px);
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .almanac-hero-copy {
+        position: relative;
+        z-index: 2;
+        max-width: 720px;
+      }
+
+      .almanac-hero .lead {
+        max-width: 540px;
+        margin: 24px 0 30px;
+        color: var(--color-text-muted);
+        font-family: var(--font-display);
+        font-size: clamp(1.1rem, 2.5vw, 1.45rem);
+        line-height: 1.45;
+      }
+
+      .hero-orbit {
+        position: absolute;
+        right: clamp(-190px, -5vw, -40px);
+        bottom: clamp(-150px, -10vw, -30px);
+        width: min(76vw, 620px);
+        aspect-ratio: 1;
+        border: 1px solid var(--hairline);
+        border-radius: 50%;
+      }
+
+      .hero-orbit::before,
+      .hero-orbit::after {
+        position: absolute;
+        inset: 12%;
+        border: 1px solid var(--quiet-line);
+        border-radius: inherit;
+        content: "";
+      }
+
+      .hero-orbit::after {
+        inset: 28%;
+      }
+
+      .hero-orbit .moon-mark {
+        position: absolute;
+        top: 13%;
+        left: 11%;
+        width: 54px;
+        animation: moon-breathe 4s ease-in-out infinite;
+      }
+
+      @keyframes moon-breathe {
+        50% {
+          box-shadow: 0 0 54px color-mix(in srgb, var(--color-accent) 32%, transparent);
+          transform: scale(1.04);
+        }
+      }
+
+      .almanac-reading {
+        display: grid;
+        gap: clamp(22px, 4vw, 48px);
+        padding: clamp(48px, 8vw, 100px) clamp(18px, 5vw, 64px);
+        border-top: 1px solid var(--quiet-line);
+        scroll-margin-top: calc(var(--chrome-height) + 10px);
+      }
+
+      .almanac-card {
+        display: flex;
+        min-height: min(760px, 83svh);
+        padding: clamp(34px, 6vw, 66px);
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .almanac-card-top,
+      .almanac-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .month-name {
+        margin: 18px 0 4px;
+        font-family: var(--font-display);
+        font-size: clamp(4rem, 14vw, 8rem);
+        font-weight: 400;
+        line-height: 0.84;
+        letter-spacing: -0.055em;
+      }
+
+      .hebrew-month {
+        color: var(--color-text-muted);
+        font-family: var(--font-hebrew);
+        font-size: var(--text-xl);
+      }
+
+      .reading-kicker {
+        max-width: 680px;
+        margin: 28px 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.65rem, 4.8vw, 3.3rem);
+        line-height: 1.12;
+      }
+
+      .ritual-inset {
+        margin: 16px 0 28px;
+        padding: 19px 20px;
+        border-inline-start: 2px solid var(--color-accent);
+        background: var(--warm-wash);
+      }
+
+      .ritual-inset strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--color-accent);
+        font-size: var(--text-xs);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .almanac-side {
+        display: grid;
+        gap: 16px;
+        align-content: start;
+      }
+
+      .root-discovery {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .root-discovery summary {
+        display: flex;
+        min-height: 70px;
+        padding: 18px 20px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .root-discovery summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .root-discovery summary span:last-child {
+        color: var(--color-accent);
+        font-size: 1.3rem;
+        transition: transform 0.2s ease;
+      }
+
+      .root-discovery[open] summary span:last-child {
+        transform: rotate(45deg);
+      }
+
+      .root-body {
+        display: grid;
+        gap: 20px;
+        padding: 6px 20px 24px;
+        border-top: 1px solid var(--quiet-line);
+      }
+
+      .root-glyph-row {
+        display: grid;
+        grid-template-columns: 82px 1fr;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .root-glyph-row .hebrew-glyph {
+        color: var(--color-accent);
+        font-size: 5.2rem;
+        text-align: center;
+      }
+
+      .upcoming-panel {
+        padding: 22px;
+      }
+
+      .upcoming-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .upcoming-item {
+        display: grid;
+        width: 100%;
+        padding: 15px 0;
+        grid-template-columns: 40px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        border: 0;
+        border-top: 1px solid var(--quiet-line);
+        color: inherit;
+        background: transparent;
+        text-align: start;
+        cursor: pointer;
+      }
+
+      .upcoming-item:hover .upcoming-title {
+        color: var(--color-accent);
+      }
+
+      .upcoming-icon {
+        display: grid;
+        width: 38px;
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid var(--hairline);
+        border-radius: 50%;
+        color: var(--color-accent);
+      }
+
+      .upcoming-title {
+        display: block;
+        font-weight: 700;
+        transition: color 0.16s ease;
+      }
+
+      .upcoming-meta {
+        display: block;
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+      }
+
+      .birth-module {
+        padding: clamp(24px, 5vw, 48px);
+      }
+
+      .birth-intro {
+        display: grid;
+        gap: 12px;
+      }
+
+      .birth-form {
+        display: grid;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .birth-label {
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .birth-input-row {
+        display: grid;
+        gap: 10px;
+      }
+
+      .birth-input {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 13px;
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-md);
+        color: var(--color-text);
+        background: color-mix(in srgb, var(--color-bg-deep) 78%, transparent);
+        color-scheme: dark;
+      }
+
+      .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .form-error {
+        min-height: 18px;
+        margin: 0;
+        color: var(--color-danger);
+        font-size: var(--text-xs);
+      }
+
+      .birth-output {
+        display: none;
+        gap: 18px;
+        margin-top: 22px;
+        padding-top: 22px;
+        border-top: 1px solid var(--quiet-line);
+      }
+
+      .birth-output.ready {
+        display: grid;
+        animation: result-in 0.3s ease both;
+      }
+
+      @keyframes result-in {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+      }
+
+      .profile-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .profile-heading h3 {
+        margin: 3px 0;
+        font-family: var(--font-display);
+        font-size: var(--text-2xl);
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .profile-letter {
+        color: var(--color-accent);
+        font-family: var(--font-hebrew);
+        font-size: 4rem;
+        line-height: 0.9;
+      }
+
+      .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px;
+      }
+
+      .profile-fact {
+        padding: 11px;
+        border: 1px solid var(--quiet-line);
+        border-radius: var(--radius-md);
+      }
+
+      .profile-fact span {
+        display: block;
+        color: var(--color-text-muted);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .profile-fact strong {
+        display: block;
+        margin-top: 3px;
+        font-size: var(--text-sm);
+      }
+
+      .tikkun-note {
+        margin: 0;
+        padding: 15px;
+        border-inline-start: 2px solid var(--color-accent);
+        background: var(--warm-wash);
+        font-family: var(--font-display);
+        font-size: var(--text-lg);
+      }
+
+      .almanac-birth {
+        margin: 0 clamp(18px, 5vw, 64px) clamp(58px, 8vw, 100px);
+      }
+
+      /* Variant B — lunar instrument */
+      .instrument-shell {
+        width: min(100%, 1240px);
+        min-height: calc(100svh - var(--chrome-height));
+        margin: 0 auto;
+        padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 54px) 70px;
+      }
+
+      .instrument-header {
+        display: flex;
+        max-width: 1020px;
+        margin: 0 auto 24px;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .instrument-header h1 {
+        max-width: 740px;
+        font-size: clamp(2.5rem, 7vw, 5.6rem);
+      }
+
+      .instrument-grid {
+        display: grid;
+        max-width: 1020px;
+        margin: 0 auto;
+        gap: clamp(20px, 4vw, 46px);
+        align-items: center;
+      }
+
+      .lunar-dial {
+        position: relative;
+        width: min(88vw, 560px);
+        aspect-ratio: 1;
+        margin: 0 auto;
+        border: 1px solid var(--hairline);
+        border-radius: 50%;
+        background:
+          radial-gradient(circle, var(--warm-wash) 0 7%, transparent 7.5%),
+          repeating-radial-gradient(circle, transparent 0 13%, var(--quiet-line) 13.2% 13.4%, transparent 13.6% 21%);
+        box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.25), var(--shadow-lg);
+      }
+
+      .lunar-dial::before,
+      .lunar-dial::after {
+        position: absolute;
+        inset: 4%;
+        border: 1px solid var(--quiet-line);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .lunar-dial::after {
+        inset: 22%;
+        border-style: dashed;
+      }
+
+      .dial-axis {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 91%;
+        height: 1px;
+        background: var(--quiet-line);
+        transform: translate(-50%, -50%) rotate(-18deg);
+      }
+
+      .dial-center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        z-index: 2;
+        display: grid;
+        width: 38%;
+        aspect-ratio: 1;
+        place-items: center;
+        border: 1px solid var(--color-accent);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--color-bg-deep) 92%, transparent);
+        box-shadow: 0 0 60px var(--warm-wash);
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+
+      .dial-center .hebrew-glyph {
+        display: block;
+        color: var(--color-accent);
+        font-size: clamp(3.4rem, 12vw, 6.2rem);
+      }
+
+      .dial-center small {
+        display: block;
+        color: var(--color-text-muted);
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .dial-control {
+        position: absolute;
+        z-index: 4;
+        display: grid;
+        width: clamp(78px, 22vw, 118px);
+        aspect-ratio: 1;
+        padding: 9px;
+        place-items: center;
+        border: 1px solid var(--hairline);
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        background: color-mix(in srgb, var(--color-bg-deep) 91%, transparent);
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        font-size: var(--text-xs);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: center;
+        text-transform: uppercase;
+        transition: transform 0.18s ease, color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+      }
+
+      .dial-control:hover,
+      .dial-control.active {
+        color: var(--color-bg-deep);
+        border-color: var(--color-accent);
+        background: var(--color-accent);
+        transform: scale(1.06);
+      }
+
+      .dial-control[data-instrument-target="season"] {
+        top: 4%;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .dial-control[data-instrument-target="season"]:hover,
+      .dial-control[data-instrument-target="season"].active {
+        transform: translateX(-50%) scale(1.06);
+      }
+
+      .dial-control[data-instrument-target="ritual"] {
+        right: 2%;
+        bottom: 11%;
+      }
+
+      .dial-control[data-instrument-target="coming"] {
+        bottom: 11%;
+        left: 2%;
+      }
+
+      .dial-moon {
+        position: absolute;
+        top: 24%;
+        right: 7%;
+      }
+
+      .instrument-readout {
+        min-height: 420px;
+        padding: clamp(24px, 5vw, 45px);
+      }
+
+      .instrument-panel {
+        display: none;
+      }
+
+      .instrument-panel.active {
+        display: grid;
+        gap: 20px;
+        animation: result-in 0.28s ease both;
+      }
+
+      .instrument-panel h2 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2.5rem, 7vw, 4.8rem);
+        font-weight: 400;
+        line-height: 0.95;
+      }
+
+      .instrument-panel .reading-line {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.35rem, 3vw, 2rem);
+        line-height: 1.35;
+      }
+
+      .instrument-utilities {
+        display: grid;
+        max-width: 1020px;
+        margin: 28px auto 0;
+        gap: 18px;
+      }
+
+      .instrument-upcoming {
+        padding: 24px;
+      }
+
+      .instrument-upcoming .timeline {
+        display: grid;
+        gap: 0;
+        margin-top: 22px;
+      }
+
+      .timeline-step {
+        position: relative;
+        display: grid;
+        padding: 0 0 24px 28px;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        border-inline-start: 1px solid var(--hairline);
+      }
+
+      .timeline-step::before {
+        position: absolute;
+        top: 0;
+        left: -5px;
+        width: 9px;
+        aspect-ratio: 1;
+        border: 1px solid var(--color-accent);
+        border-radius: 50%;
+        background: var(--color-bg-deep);
+        content: "";
+      }
+
+      .timeline-step:last-child {
+        padding-bottom: 0;
+      }
+
+      /* Variant C — share-first deck */
+      .deck-shell {
+        display: grid;
+        width: min(100%, 1080px);
+        min-height: calc(100svh - var(--chrome-height));
+        margin: 0 auto;
+        padding: 22px 14px 52px;
+        place-items: center;
+      }
+
+      .deck-layout {
+        display: grid;
+        width: 100%;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .deck-intro {
+        max-width: 520px;
+      }
+
+      .deck-intro h1 {
+        margin: 0 0 15px;
+        font-family: var(--font-display);
+        font-size: clamp(2.35rem, 7vw, 4.8rem);
+        font-weight: 400;
+        line-height: 0.96;
+      }
+
+      .deck-stage {
+        position: relative;
+        width: min(100%, 405px);
+        aspect-ratio: 9 / 15.8;
+        max-height: 74svh;
+        min-height: 570px;
+        margin: 0 auto;
+        touch-action: pan-y;
+        perspective: 1300px;
+      }
+
+      .deck-card {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        padding: clamp(28px, 7vw, 46px);
+        overflow: hidden;
+        flex-direction: column;
+        justify-content: space-between;
+        border: 1px solid var(--hairline);
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 72% 12%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 31%),
+          linear-gradient(155deg, color-mix(in srgb, var(--color-bg) 58%, #240919), var(--color-bg-deep) 68%);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(38px) rotateY(-5deg) scale(0.96);
+        transition: opacity 0.28s ease, transform 0.34s ease;
+      }
+
+      .deck-card::before {
+        position: absolute;
+        inset: 16px;
+        border: 1px solid var(--quiet-line);
+        border-radius: 15px;
+        pointer-events: none;
+        content: "";
+      }
+
+      .deck-card.active {
+        z-index: 3;
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateX(0) rotateY(0) scale(1);
+      }
+
+      .deck-card.before {
+        opacity: 0;
+        transform: translateX(-38px) rotateY(5deg) scale(0.96);
+      }
+
+      .deck-card h2 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(2.6rem, 11vw, 4.8rem);
+        font-weight: 400;
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+
+      .deck-card .card-copy {
+        position: relative;
+        z-index: 1;
+        margin: 18px 0;
+        font-family: var(--font-display);
+        font-size: clamp(1.2rem, 4.2vw, 1.55rem);
+        line-height: 1.34;
+      }
+
+      .deck-card .card-number {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        color: var(--color-text-muted);
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .deck-card .hebrew-glyph.hero-letter {
+        position: absolute;
+        right: 22px;
+        bottom: 24px;
+        z-index: 0;
+        color: color-mix(in srgb, var(--color-accent) 26%, transparent);
+        font-size: 13rem;
+      }
+
+      .deck-card-scroll {
+        position: relative;
+        z-index: 2;
+        max-height: 82%;
+        padding-right: 4px;
+        overflow-y: auto;
+      }
+
+      .deck-card .birth-module {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+
+      .deck-card .birth-form {
+        margin-top: 15px;
+      }
+
+      .deck-card .birth-output {
+        gap: 11px;
+        margin-top: 13px;
+        padding-top: 13px;
+      }
+
+      .deck-card .profile-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .deck-card .profile-fact {
+        padding: 7px;
+      }
+
+      .deck-card .tikkun-note {
+        padding: 10px;
+        font-size: var(--text-sm);
+      }
+
+      .deck-card .profile-heading h3 {
+        font-size: var(--text-xl);
+      }
+
+      .deck-card .profile-letter {
+        font-size: 3rem;
+      }
+
+      .deck-controls {
+        display: grid;
+        width: min(100%, 405px);
+        margin: 0 auto;
+        grid-template-columns: 44px 1fr 44px;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .deck-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .deck-dot {
+        width: 7px;
+        aspect-ratio: 1;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: var(--hairline);
+        cursor: pointer;
+        transition: transform 0.18s ease, background 0.18s ease;
+      }
+
+      .deck-dot.active {
+        background: var(--color-accent);
+        transform: scale(1.4);
+      }
+
+      .deck-share {
+        display: flex;
+        width: min(100%, 405px);
+        margin: 0 auto;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--color-text-muted);
+        font-size: var(--text-xs);
+      }
+
+      /* Shared overlays */
+      .source-drawer {
+        position: fixed;
+        inset: var(--chrome-height) 0 0 auto;
+        z-index: 850;
+        width: min(94vw, 460px);
+        padding: clamp(28px, 6vw, 54px);
+        overflow-y: auto;
+        border-inline-start: 1px solid var(--hairline);
+        background:
+          radial-gradient(circle at 100% 0, var(--warm-wash), transparent 34%),
+          color-mix(in srgb, var(--color-bg-deep) 96%, black);
+        box-shadow: -30px 0 90px rgba(0, 0, 0, 0.45);
+        transform: translateX(105%);
+        transition: transform 0.28s ease;
+      }
+
+      .source-drawer.open {
+        transform: translateX(0);
+      }
+
+      .source-drawer .drawer-close {
+        position: sticky;
+        top: 0;
+        float: right;
+      }
+
+      .source-drawer .drawer-letter {
+        margin: 35px 0 14px;
+        color: var(--color-accent);
+        font-family: var(--font-hebrew);
+        font-size: 9rem;
+        line-height: 0.8;
+      }
+
+      .source-drawer h2 {
+        margin: 0 0 20px;
+        font-family: var(--font-display);
+        font-size: 2.8rem;
+        font-weight: 400;
+        line-height: 1;
+      }
+
+      .source-scrim {
+        position: fixed;
+        inset: var(--chrome-height) 0 0;
+        z-index: 840;
+        border: 0;
+        background: rgba(0, 0, 0, 0.58);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+      }
+
+      .source-scrim.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .pulse-dialog {
+        width: min(92vw, 560px);
+        max-height: 84svh;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid var(--hairline);
+        border-radius: 22px;
+        color: var(--color-text);
+        background:
+          radial-gradient(circle at 100% 0, var(--warm-wash), transparent 38%),
+          var(--color-bg-deep);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .pulse-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.68);
+        backdrop-filter: blur(8px);
+      }
+
+      .pulse-dialog-inner {
+        padding: clamp(28px, 6vw, 52px);
+      }
+
+      .pulse-dialog h2 {
+        margin: 0 0 18px;
+        font-family: var(--font-display);
+        font-size: clamp(2.8rem, 10vw, 5rem);
+        font-weight: 400;
+        line-height: 0.92;
+      }
+
+      .pulse-practice {
+        display: grid;
+        gap: 10px;
+        margin: 24px 0;
+      }
+
+      .pulse-practice p {
+        margin: 0;
+        padding: 14px;
+        border: 1px solid var(--quiet-line);
+        border-radius: var(--radius-md);
+      }
+
+      .dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: max(22px, env(safe-area-inset-bottom));
+        z-index: 1200;
+        width: max-content;
+        max-width: calc(100vw - 30px);
+        padding: 11px 16px;
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-full);
+        color: var(--color-text);
+        background: color-mix(in srgb, var(--color-bg-deep) 94%, black);
+        box-shadow: var(--shadow-md);
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 18px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        font-size: var(--text-sm);
+      }
+
+      #toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      /* Sketch utilities */
+      #sketch-tools {
+        position: fixed;
+        right: 12px;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        z-index: 1100;
+        display: flex;
+        gap: 6px;
+        padding: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.76);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+        opacity: 0.48;
+        transition: opacity 0.2s ease;
+        font-family: system-ui, sans-serif;
+        font-size: 11px;
+      }
+
+      #sketch-tools:hover,
+      #sketch-tools:focus-within,
+      #sketch-tools.open {
+        opacity: 1;
+      }
+
+      .tool-button,
+      .tool-select {
+        min-height: 31px;
+        padding: 5px 7px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 7px;
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+      }
+
+      .tool-button[aria-pressed="true"] {
+        border-color: #d6b36a;
+        background: rgba(214, 179, 106, 0.3);
+      }
+
+      #tool-menu {
+        display: none;
+      }
+
+      .annotation-tip {
+        position: fixed;
+        z-index: 1300;
+        display: none;
+        max-width: 260px;
+        padding: 7px 9px;
+        border-radius: 6px;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.9);
+        pointer-events: none;
+        font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      body.annotating *:not(#sketch-tools):hover {
+        outline: 1px dashed rgba(214, 179, 106, 0.72);
+        outline-offset: 2px;
+      }
+
+      @media (min-width: 760px) {
+        .almanac-reading {
+          grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.72fr);
+        }
+
+        .birth-input-row {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+
+        .birth-input-row .action {
+          min-width: 150px;
+        }
+
+        .instrument-grid {
+          grid-template-columns: minmax(360px, 1fr) minmax(340px, 0.82fr);
+        }
+
+        .instrument-utilities {
+          grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+        }
+
+        .deck-layout {
+          grid-template-columns: minmax(260px, 0.75fr) minmax(405px, 1fr);
+        }
+
+        .deck-intro {
+          padding: 34px;
+        }
+      }
+
+      @media (max-width: 759px) {
+        :root {
+          --chrome-height: 80px;
+        }
+
+        .prototype-strip span:last-child {
+          display: none;
+        }
+
+        .almanac-card {
+          min-height: 690px;
+        }
+
+        .almanac-card-footer {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .instrument-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .instrument-readout {
+          min-height: 390px;
+        }
+
+        .deck-stage {
+          min-height: min(650px, calc(100svh - 240px));
+        }
+
+        .deck-intro {
+          display: none;
+        }
+
+        #sketch-tools {
+          align-items: flex-end;
+          flex-direction: column;
+        }
+
+        #tool-menu {
+          display: inline-block;
+        }
+
+        #sketch-tools:not(.open) .tool-select,
+        #sketch-tools:not(.open) .viewport-tool,
+        #sketch-tools:not(.open) #annotation-toggle {
+          display: none;
+        }
+      }
+
+      @media (max-width: 430px) {
+        .variant-tab {
+          padding-inline: 10px;
+        }
+
+        .almanac-reading {
+          padding-inline: 12px;
+        }
+
+        .almanac-card {
+          padding: 34px 28px;
+        }
+
+        .almanac-birth {
+          margin-inline: 12px;
+        }
+
+        .lunar-dial {
+          width: min(92vw, 440px);
+        }
+
+        .dial-control {
+          width: 78px;
+          font-size: 10px;
+        }
+
+        .instrument-shell {
+          padding-inline: 12px;
+        }
+
+        .deck-card {
+          padding: 31px 29px;
+        }
+
+        .profile-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body data-variant="a">
+    <header class="sketch-chrome">
+      <nav class="variant-nav" aria-label="Sketch variants">
+        <button class="variant-tab active" type="button" data-variant-target="a">A · Midnight Almanac</button>
+        <button class="variant-tab" type="button" data-variant-target="b">B · Lunar Instrument</button>
+        <button class="variant-tab" type="button" data-variant-target="c">C · Ember Card Deck</button>
+      </nav>
+      <div class="prototype-strip">
+        <span><strong>Flow sketch</strong> · fixed Tammuz content</span>
+        <span>PRD steps 1–4 · no app code</span>
+      </div>
+    </header>
+
+    <main id="sketch-frame">
+      <section id="variant-a" class="variant active" aria-labelledby="a-title">
+        <div class="almanac">
+          <section class="almanac-hero">
+            <div class="almanac-hero-copy">
+              <p class="eyebrow">A monthly consultation</p>
+              <h1 id="a-title" class="display-title">What does this season hold?</h1>
+              <p class="lead">A reading for the moment you are in—one reflection, one small ritual, and a reason to return.</p>
+              <button class="action" type="button" data-enter="#a-reading">Enter the season <span aria-hidden="true">↓</span></button>
+              <p class="microcopy">No login. No setup. About two minutes.</p>
+            </div>
+            <div class="hero-orbit" aria-hidden="true">
+              <span class="moon-mark"></span>
+            </div>
+          </section>
+
+          <section id="a-reading" class="almanac-reading" tabindex="-1">
+            <article class="surface share-card almanac-card" aria-label="Tammuz season reading">
+              <div>
+                <div class="almanac-card-top">
+                  <p class="eyebrow">Season reading · prototype date</p>
+                  <span class="moon-mark" aria-hidden="true"></span>
+                </div>
+                <h2 class="month-name">Tammuz</h2>
+                <p class="hebrew-month"><bdi lang="he" dir="rtl">תמוז</bdi> · Cancer ♋︎</p>
+                <p class="reading-kicker">This season invites the courage to look directly at what you have been avoiding.</p>
+                <ul class="metadata-row" aria-label="Season metadata">
+                  <li data-demo-date>25 Tammuz 5786</li>
+                  <li>Waning crescent</li>
+                  <li>Faculty of sight</li>
+                </ul>
+                <div class="ritual-inset">
+                  <strong>Tiny ritual</strong>
+                  Look at one thing you have been avoiding. Write one honest sentence about what you see.
+                </div>
+              </div>
+              <div class="almanac-card-footer">
+                <span class="microcopy">A reflection, not a prediction.</span>
+                <button class="quiet-action" type="button" data-share>Share this reading ↗</button>
+              </div>
+            </article>
+
+            <aside class="almanac-side">
+              <details class="surface root-discovery">
+                <summary>
+                  <span>
+                    <strong>There is an older calendar beneath this.</strong><br>
+                    <span class="microcopy">Discover the Jewish root</span>
+                  </span>
+                  <span aria-hidden="true">+</span>
+                </summary>
+                <div class="root-body">
+                  <div class="root-glyph-row">
+                    <span class="hebrew-glyph" aria-hidden="true">ח</span>
+                    <div>
+                      <p class="eyebrow">Letter Chet · sight</p>
+                      <p>Cosmic Calendar follows a Gra / Arizal-Gra lineage of Sefer Yetzirah that connects Tammuz with Chet, Reuben, Cancer, and the faculty of sight.</p>
+                    </div>
+                  </div>
+                  <p class="microcopy">This is the app's adopted source lineage, not a claim that every Jewish mystical tradition maps the months identically.</p>
+                </div>
+              </details>
+
+              <section class="surface upcoming-panel" aria-labelledby="a-upcoming-title">
+                <p class="eyebrow">Return rhythm</p>
+                <h2 id="a-upcoming-title" class="section-title">What’s coming up</h2>
+                <div class="upcoming-list">
+                  <button class="upcoming-item" type="button" data-open-pulse>
+                    <span class="upcoming-icon" aria-hidden="true">◐</span>
+                    <span>
+                      <span class="upcoming-title">Friday Pulse</span>
+                      <span class="upcoming-meta">Open now · a weekly reset</span>
+                    </span>
+                    <span aria-hidden="true">→</span>
+                  </button>
+                  <button class="upcoming-item" type="button" data-moon-toast>
+                    <span class="upcoming-icon" aria-hidden="true">◯</span>
+                    <span>
+                      <span class="upcoming-title">New moon window</span>
+                      <span class="upcoming-meta">July 15 · Hebrew-calendar approximation</span>
+                    </span>
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </div>
+              </section>
+            </aside>
+          </section>
+
+          <section class="surface birth-module almanac-birth" aria-labelledby="a-birth-title">
+            <div class="birth-intro">
+              <p class="eyebrow">Make the calendar yours</p>
+              <h2 id="a-birth-title" class="section-title">What season were you born into?</h2>
+              <p class="microcopy">Enter a civil birthday. If the birth was after sunset, the Hebrew date may be the following day.</p>
+            </div>
+            <form class="birth-form" novalidate>
+              <label class="birth-label">Birthday
+                <span class="sr-only">Use month, day, and year</span>
+              </label>
+              <div class="birth-input-row">
+                <input class="birth-input" type="date" aria-describedby="a-birth-error" required>
+                <button class="action" type="submit">Reveal my profile</button>
+              </div>
+              <div class="form-actions">
+                <button class="quiet-action sample-birthday" type="button">Try a sample birthday</button>
+              </div>
+              <p id="a-birth-error" class="form-error" role="alert"></p>
+            </form>
+            <div class="birth-output" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="variant-b" class="variant" aria-labelledby="b-title">
+        <div class="instrument-shell">
+          <header class="instrument-header">
+            <div>
+              <p class="eyebrow">The calendar is already in motion</p>
+              <h1 id="b-title" class="section-title">What does this season hold?</h1>
+            </div>
+            <p class="microcopy">Tammuz · <bdi lang="he" dir="rtl">תמוז</bdi> · 25 / 29</p>
+          </header>
+
+          <div class="instrument-grid">
+            <div class="lunar-dial" aria-label="Tammuz consultation instrument">
+              <div class="dial-axis" aria-hidden="true"></div>
+              <div class="dial-center">
+                <span>
+                  <span class="hebrew-glyph" aria-hidden="true">ח</span>
+                  <small>Letter Chet</small>
+                </span>
+              </div>
+              <span class="moon-mark dial-moon" aria-hidden="true"></span>
+              <button class="dial-control active" type="button" data-instrument-target="season">Season</button>
+              <button class="dial-control" type="button" data-instrument-target="ritual">Ritual</button>
+              <button class="dial-control" type="button" data-instrument-target="coming">Coming up</button>
+            </div>
+
+            <section class="surface instrument-readout" aria-live="polite">
+              <div class="instrument-panel active" data-instrument-panel="season">
+                <p class="eyebrow">Tammuz · Cancer ♋︎ · sight</p>
+                <h2>Honest seeing</h2>
+                <p class="reading-line">The danger is not what waits in the dark. It is the habit of looking away.</p>
+                <p>This season invites a direct gaze—with enough softness to let what you see change you.</p>
+                <ul class="metadata-row">
+                  <li data-demo-date>25 Tammuz 5786</li>
+                  <li>Waning crescent</li>
+                </ul>
+                <div class="form-actions">
+                  <button class="action" type="button" data-share>Share reading</button>
+                  <button class="quiet-action" type="button" data-source-drawer>Why these symbols?</button>
+                </div>
+              </div>
+              <div class="instrument-panel" data-instrument-panel="ritual">
+                <p class="eyebrow">A two-minute practice</p>
+                <h2>Look once. Write once.</h2>
+                <p class="reading-line">Bring one avoided thing into view. Do not solve it. Write one sentence that begins, “What I can see now is…”</p>
+                <p class="microcopy">Specific enough to do today. Small enough not to become another task.</p>
+                <button class="action" type="button" data-ritual-complete>Mark ritual complete</button>
+              </div>
+              <div class="instrument-panel" data-instrument-panel="coming">
+                <p class="eyebrow">The next seven days</p>
+                <h2>Return points</h2>
+                <div class="timeline">
+                  <div class="timeline-step">
+                    <span><strong>Friday Pulse</strong><br><span class="microcopy">A weekly release and reset</span></span>
+                    <button class="quiet-action" type="button" data-open-pulse>Open</button>
+                  </div>
+                  <div class="timeline-step">
+                    <span><strong>New moon window</strong><br><span class="microcopy">July 15 · the cycle goes dark</span></span>
+                    <button class="quiet-action" type="button" data-moon-toast>Preview</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="instrument-utilities">
+            <section class="surface birth-module" aria-labelledby="b-birth-title">
+              <div class="birth-intro">
+                <p class="eyebrow">Your coordinate</p>
+                <h2 id="b-birth-title" class="section-title">Find your birth season</h2>
+                <p class="microcopy">Civil-date conversion only; after-sunset births can shift by one Hebrew day.</p>
+              </div>
+              <form class="birth-form" novalidate>
+                <label class="birth-label">Birthday</label>
+                <div class="birth-input-row">
+                  <input class="birth-input" type="date" required>
+                  <button class="action" type="submit">Plot my profile</button>
+                </div>
+                <div class="form-actions">
+                  <button class="quiet-action sample-birthday" type="button">Use sample</button>
+                </div>
+                <p class="form-error" role="alert"></p>
+              </form>
+              <div class="birth-output" aria-live="polite"></div>
+            </section>
+
+            <section class="surface instrument-upcoming" aria-labelledby="b-rhythm-title">
+              <p class="eyebrow">Living cadence</p>
+              <h2 id="b-rhythm-title" class="section-title">Not a one-time read</h2>
+              <div class="timeline">
+                <div class="timeline-step">
+                  <span><strong>Today</strong><br><span class="microcopy">Season reading</span></span>
+                  <span>◐</span>
+                </div>
+                <div class="timeline-step">
+                  <span><strong>Friday</strong><br><span class="microcopy">Weekly Pulse</span></span>
+                  <span>↺</span>
+                </div>
+                <div class="timeline-step">
+                  <span><strong>July 15</strong><br><span class="microcopy">New moon window</span></span>
+                  <span>○</span>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section id="variant-c" class="variant" aria-labelledby="c-title">
+        <div class="deck-shell">
+          <div class="deck-layout">
+            <header class="deck-intro">
+              <p class="eyebrow">Five cards · one consultation</p>
+              <h1 id="c-title">What does this season hold?</h1>
+              <p>Swipe through a compact reading designed to feel finished at every step—and ready to share at the first.</p>
+              <p class="microcopy">Use the arrows, dots, keyboard, or swipe left/right.</p>
+            </header>
+
+            <div>
+              <div id="deck-stage" class="deck-stage" tabindex="0" aria-label="Ritual card deck">
+                <article class="deck-card active" data-deck-card="0" aria-label="Card 1 of 5: Season reading">
+                  <div class="card-number"><span>Season · 01</span><span>◐ Waning</span></div>
+                  <div>
+                    <p class="eyebrow">Tammuz · <bdi lang="he" dir="rtl">תמוז</bdi></p>
+                    <h2>Look<br>directly.</h2>
+                    <p class="card-copy">This season invites the courage to see what you have been avoiding.</p>
+                  </div>
+                  <div>
+                    <ul class="metadata-row">
+                      <li>Cancer ♋︎</li>
+                      <li>Sight</li>
+                    </ul>
+                  </div>
+                  <span class="hebrew-glyph hero-letter" aria-hidden="true">ח</span>
+                </article>
+
+                <article class="deck-card" data-deck-card="1" aria-label="Card 2 of 5: Tiny ritual">
+                  <div class="card-number"><span>Practice · 02</span><span>2 minutes</span></div>
+                  <div>
+                    <p class="eyebrow">Tiny ritual</p>
+                    <h2>One thing.<br>One sentence.</h2>
+                    <p class="card-copy">Look at one thing you have been avoiding. Write one honest sentence about what you see. Stop there.</p>
+                  </div>
+                  <button class="action" type="button" data-ritual-complete>I did this today</button>
+                </article>
+
+                <article class="deck-card" data-deck-card="2" aria-label="Card 3 of 5: Birth profile">
+                  <div class="deck-card-scroll">
+                    <section class="birth-module" aria-labelledby="c-birth-title">
+                      <div class="birth-intro">
+                        <p class="eyebrow">Yours · 03</p>
+                        <h2 id="c-birth-title">Find your season.</h2>
+                        <p class="microcopy">A civil birthday reveals a Hebrew-calendar profile. After-sunset births may shift by one day.</p>
+                      </div>
+                      <form class="birth-form" novalidate>
+                        <label class="birth-label">Birthday</label>
+                        <input class="birth-input" type="date" required>
+                        <div class="form-actions">
+                          <button class="action" type="submit">Reveal</button>
+                          <button class="quiet-action sample-birthday" type="button">Sample</button>
+                        </div>
+                        <p class="form-error" role="alert"></p>
+                      </form>
+                      <div class="birth-output" aria-live="polite"></div>
+                    </section>
+                  </div>
+                </article>
+
+                <article class="deck-card" data-deck-card="3" aria-label="Card 4 of 5: What is coming up">
+                  <div class="card-number"><span>Return · 04</span><span>Next 7 days</span></div>
+                  <div>
+                    <p class="eyebrow">What’s coming up</p>
+                    <h2>Come back<br>to the rhythm.</h2>
+                    <div class="upcoming-list">
+                      <button class="upcoming-item" type="button" data-open-pulse>
+                        <span class="upcoming-icon" aria-hidden="true">◐</span>
+                        <span><span class="upcoming-title">Friday Pulse</span><span class="upcoming-meta">Open now</span></span>
+                        <span>→</span>
+                      </button>
+                      <button class="upcoming-item" type="button" data-moon-toast>
+                        <span class="upcoming-icon" aria-hidden="true">○</span>
+                        <span><span class="upcoming-title">New moon window</span><span class="upcoming-meta">July 15</span></span>
+                        <span>→</span>
+                      </button>
+                    </div>
+                  </div>
+                  <p class="microcopy">The calendar returns weekly and monthly, without asking you to maintain a streak.</p>
+                </article>
+
+                <article class="deck-card" data-deck-card="4" aria-label="Card 5 of 5: Jewish calendar root">
+                  <div class="card-number"><span>Beneath · 05</span><span>Gra / Arizal-Gra</span></div>
+                  <div>
+                    <p class="eyebrow">The older calendar beneath this</p>
+                    <h2><span class="hebrew-glyph" aria-hidden="true">ח</span> · Chet</h2>
+                    <p class="card-copy">In the lineage this app follows, Tammuz is linked with Chet, Reuben, Cancer, and the faculty of sight.</p>
+                    <p>This Jewish mystical map of time is the hidden structure behind the reading—not a requirement for receiving it.</p>
+                  </div>
+                  <p class="microcopy">An adopted source tradition, not a universal attribution claim.</p>
+                </article>
+              </div>
+
+              <div class="deck-controls" aria-label="Deck controls">
+                <button class="icon-action" type="button" data-deck-prev aria-label="Previous card">←</button>
+                <div class="deck-dots">
+                  <button class="deck-dot active" type="button" data-deck-dot="0" aria-label="Show season card"></button>
+                  <button class="deck-dot" type="button" data-deck-dot="1" aria-label="Show ritual card"></button>
+                  <button class="deck-dot" type="button" data-deck-dot="2" aria-label="Show birth profile card"></button>
+                  <button class="deck-dot" type="button" data-deck-dot="3" aria-label="Show upcoming card"></button>
+                  <button class="deck-dot" type="button" data-deck-dot="4" aria-label="Show root card"></button>
+                </div>
+                <button class="icon-action" type="button" data-deck-next aria-label="Next card">→</button>
+              </div>
+              <div class="deck-share">
+                <span id="deck-status" aria-live="polite">Season · card 1 of 5</span>
+                <button class="quiet-action" type="button" data-share>Share active reading ↗</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <button id="source-scrim" class="source-scrim" type="button" aria-label="Close source drawer"></button>
+    <aside id="source-drawer" class="source-drawer" aria-hidden="true" aria-labelledby="drawer-title">
+      <button class="icon-action drawer-close" type="button" data-close-drawer aria-label="Close source drawer">×</button>
+      <div class="drawer-letter" aria-hidden="true">ח</div>
+      <p class="eyebrow">Letter Chet · Reuben · sight</p>
+      <h2 id="drawer-title">An ancient map of the month.</h2>
+      <p>Cosmic Calendar uses the Gra / Arizal-Gra attribution lineage as its working spine. In that tradition, every Hebrew month is connected to a zodiac sign, a tribe, a Hebrew letter, and a human faculty.</p>
+      <p>For Tammuz, those links are Cancer, Reuben, Chet, and sight. The app translates that source language into an invitation to see clearly rather than a prediction about what will happen.</p>
+      <p class="microcopy">Source note: Sefer Yetzirah, Gra Version, chapter 5, cross-checked through the project's GalEinai research. Traditions and recensions vary.</p>
+    </aside>
+
+    <dialog id="pulse-dialog" class="pulse-dialog" aria-labelledby="pulse-title">
+      <div class="pulse-dialog-inner">
+        <p class="eyebrow">Friday Pulse · Tammuz</p>
+        <h2 id="pulse-title">Let the week come into focus.</h2>
+        <p>Notice what became visible this week. You do not need to resolve it before you rest.</p>
+        <div class="pulse-practice">
+          <p><strong>Release</strong><br>The need to make every truth actionable tonight.</p>
+          <p><strong>Carry</strong><br>One honest sentence into the quiet.</p>
+        </div>
+        <p class="microcopy">Rooted in Shabbat as a weekly reset; named universally and offered as wisdom, not observance.</p>
+        <div class="dialog-actions">
+          <button class="action" type="button" data-close-pulse>Return to the reading</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <div id="sketch-tools" aria-label="Sketch tools">
+      <button id="tool-menu" class="tool-button" type="button" aria-expanded="false">Tools</button>
+      <select id="theme-switcher" class="tool-select" aria-label="Theme">
+        <option value="default">Indigo</option>
+        <option value="eclipse">Eclipse</option>
+      </select>
+      <button class="tool-button viewport-tool" type="button" data-viewport="390">390</button>
+      <button class="tool-button viewport-tool" type="button" data-viewport="768">768</button>
+      <button class="tool-button viewport-tool" type="button" data-viewport="full">Full</button>
+      <button id="annotation-toggle" class="tool-button" type="button" aria-pressed="false">Inspect</button>
+    </div>
+    <div id="annotation-tip" class="annotation-tip" role="status"></div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var DEMO_DATE = new Date(2026, 6, 10, 12);
+        var toastTimer;
+        var annotationMode = false;
+        var deckIndex = 0;
+        var deckStartX = null;
+
+        var profiles = {
+          nisan: {
+            month: "Nisan",
+            hebrew: "ניסן",
+            sign: "Aries ♈︎",
+            tribe: "Judah",
+            letter: "ה",
+            letterName: "Hei",
+            sense: "Speech",
+            tikkun: "Give freedom a voice without turning every beginning into escape.",
+            reading: "Your season begins with movement. Name what you are ready to leave, then choose one honest next step."
+          },
+          iyar: {
+            month: "Iyar",
+            hebrew: "אייר",
+            sign: "Taurus ♉︎",
+            tribe: "Issachar",
+            letter: "ו",
+            letterName: "Vav",
+            sense: "Thought",
+            tikkun: "Let healing be a process you can count, not a finish line you have missed.",
+            reading: "Your season holds the work of integration: steady attention, small measures, and trust in what is still becoming."
+          },
+          sivan: {
+            month: "Sivan",
+            hebrew: "סיון",
+            sign: "Gemini ♊︎",
+            tribe: "Zebulun",
+            letter: "ז",
+            letterName: "Zayin",
+            sense: "Walking / progress",
+            tikkun: "Receive what changes you, then let your feet carry the insight into ordinary life.",
+            reading: "Your season is shaped by revelation in motion—the meeting point between a new idea and the life it asks you to live."
+          },
+          tammuz: {
+            month: "Tammuz",
+            hebrew: "תמוז",
+            sign: "Cancer ♋︎",
+            tribe: "Reuben",
+            letter: "ח",
+            letterName: "Chet",
+            sense: "Sight",
+            tikkun: "Practice seeing clearly without letting intensity harden into certainty.",
+            reading: "Your season asks for an honest gaze: notice what you avoid, and let tenderness change the way you look."
+          },
+          av: {
+            month: "Av",
+            hebrew: "אב",
+            sign: "Leo ♌︎",
+            tribe: "Shimon",
+            letter: "ט",
+            letterName: "Tet",
+            sense: "Hearing",
+            tikkun: "Hear grief without making it the final word.",
+            reading: "Your season knows that loss and rebuilding can occupy the same room. Listen for what remains alive."
+          },
+          elul: {
+            month: "Elul",
+            hebrew: "אלול",
+            sign: "Virgo ♍︎",
+            tribe: "Gad",
+            letter: "י",
+            letterName: "Yud",
+            sense: "Action",
+            tikkun: "Let reflection become one precise act of return.",
+            reading: "Your season is an invitation to come back—not to perfection, but to the practice that makes honesty possible."
+          },
+          tishrei: {
+            month: "Tishrei",
+            hebrew: "תשרי",
+            sign: "Libra ♎︎",
+            tribe: "Ephraim",
+            letter: "ל",
+            letterName: "Lamed",
+            sense: "Touch / relationship",
+            tikkun: "Balance begins in relationship, not isolation.",
+            reading: "Your season carries the work of recalibration: what to release, what to welcome, and what balance asks of you now."
+          },
+          cheshvan: {
+            month: "Cheshvan",
+            hebrew: "חשוון",
+            sign: "Scorpio ♏︎",
+            tribe: "Menasheh",
+            letter: "נ",
+            letterName: "Nun",
+            sense: "Smell",
+            tikkun: "Trust the quiet signal before you demand an explanation.",
+            reading: "Your season holds a deep, unadorned quiet. What surfaces without ceremony may be the thing worth noticing."
+          },
+          kislev: {
+            month: "Kislev",
+            hebrew: "כסלו",
+            sign: "Sagittarius ♐︎",
+            tribe: "Benjamin",
+            letter: "ס",
+            letterName: "Samech",
+            sense: "Sleep",
+            tikkun: "Protect the dream while learning which light can sustain it.",
+            reading: "Your season knows expansion and darkness together. Tend the small flame that lets imagination become direction."
+          },
+          tevet: {
+            month: "Tevet",
+            hebrew: "טבת",
+            sign: "Capricorn ♑︎",
+            tribe: "Dan",
+            letter: "ע",
+            letterName: "Ayin",
+            sense: "Discernment around anger",
+            tikkun: "Turn intensity into a boundary you can keep.",
+            reading: "Your season is built on commitment after inspiration fades. Choose the practice sturdy enough for the dark."
+          },
+          shevat: {
+            month: "Shevat",
+            hebrew: "שבט",
+            sign: "Aquarius ♒︎",
+            tribe: "Asher",
+            letter: "צ",
+            letterName: "Tzadik",
+            sense: "Taste",
+            tikkun: "Learn what truly nourishes the future you imagine.",
+            reading: "Your season listens for sap beneath the surface. Renewal may begin long before anything looks different."
+          },
+          adar: {
+            month: "Adar",
+            hebrew: "אדר",
+            sign: "Pisces ♓︎",
+            tribe: "Naftali",
+            letter: "ק",
+            letterName: "Kuf",
+            sense: "Laughter",
+            tikkun: "Treat joy as a practice without using it to look away.",
+            reading: "Your season makes room for reversal and surprise. Play can loosen the story that has felt inevitable."
+          }
+        };
+
+        function showToast(message) {
+          var toast = document.getElementById("toast");
+          window.clearTimeout(toastTimer);
+          toast.textContent = message;
+          toast.classList.add("show");
+          toastTimer = window.setTimeout(function () {
+            toast.classList.remove("show");
+          }, 2600);
+        }
+
+        function normalizeMonth(month) {
+          var normalized = String(month || "")
+            .toLowerCase()
+            .replace(/['’\s-]/g, "");
+
+          var aliases = {
+            tamuz: "tammuz",
+            tammuz: "tammuz",
+            tishri: "tishrei",
+            tishrei: "tishrei",
+            heshvan: "cheshvan",
+            cheshvan: "cheshvan",
+            marcheshvan: "cheshvan",
+            adari: "adar",
+            adarii: "adar",
+            adar1: "adar",
+            adar2: "adar"
+          };
+
+          return aliases[normalized] || normalized;
+        }
+
+        function getHebrewDate(date) {
+          var formatter = new Intl.DateTimeFormat("en-u-ca-hebrew", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+          });
+          var parts = {};
+          formatter.formatToParts(date).forEach(function (part) {
+            if (part.type !== "literal") parts[part.type] = part.value;
+          });
+          return parts;
+        }
+
+        function moonPhase(day) {
+          if (day <= 2) return "New / first crescent";
+          if (day <= 7) return "Waxing crescent";
+          if (day <= 12) return "Waxing half";
+          if (day <= 17) return "Full moon window";
+          if (day <= 23) return "Waning gibbous";
+          if (day <= 28) return "Waning crescent";
+          return "Dark moon threshold";
+        }
+
+        function formatDemoDate() {
+          try {
+            var parts = getHebrewDate(DEMO_DATE);
+            var month = parts.month === "Tamuz" ? "Tammuz" : parts.month;
+            var label = parts.day + " " + month + " " + parts.year;
+            document.querySelectorAll("[data-demo-date]").forEach(function (node) {
+              node.textContent = label;
+            });
+          } catch (error) {
+            /* Static fallback already exists in the markup. */
+          }
+        }
+
+        function showVariant(id) {
+          document.body.dataset.variant = id;
+          document.querySelectorAll(".variant").forEach(function (section) {
+            section.classList.toggle("active", section.id === "variant-" + id);
+          });
+          document.querySelectorAll("[data-variant-target]").forEach(function (button) {
+            var active = button.dataset.variantTarget === id;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        document.querySelectorAll("[data-variant-target]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            showVariant(button.dataset.variantTarget);
+          });
+        });
+
+        document.querySelectorAll("[data-enter]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var target = document.querySelector(button.dataset.enter);
+            if (target) {
+              target.scrollIntoView({ behavior: "smooth", block: "start" });
+              window.setTimeout(function () {
+                target.focus({ preventScroll: true });
+              }, 450);
+              showToast("Your Tammuz reading is ready.");
+            }
+          });
+        });
+
+        function copyText(text) {
+          var area = document.createElement("textarea");
+          area.value = text;
+          area.setAttribute("readonly", "");
+          area.style.position = "fixed";
+          area.style.opacity = "0";
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand("copy");
+          area.remove();
+        }
+
+        document.querySelectorAll("[data-share]").forEach(function (button) {
+          button.addEventListener("click", async function () {
+            var text = "Tammuz invites honest seeing. Look at one thing you have been avoiding and write one true sentence about what you see. — Cosmic Calendar";
+            try {
+              if (navigator.share) {
+                await navigator.share({ title: "My Tammuz Season Reading", text: text });
+                showToast("Reading shared.");
+              } else {
+                copyText(text);
+                showToast("Reading copied to your clipboard.");
+              }
+            } catch (error) {
+              if (error && error.name === "AbortError") return;
+              copyText(text);
+              showToast("Reading copied to your clipboard.");
+            }
+          });
+        });
+
+        var sourceDrawer = document.getElementById("source-drawer");
+        var sourceScrim = document.getElementById("source-scrim");
+
+        function openSourceDrawer() {
+          sourceDrawer.classList.add("open");
+          sourceScrim.classList.add("open");
+          sourceDrawer.setAttribute("aria-hidden", "false");
+          window.setTimeout(function () {
+            sourceDrawer.querySelector("[data-close-drawer]").focus();
+          }, 200);
+        }
+
+        function closeSourceDrawer() {
+          sourceDrawer.classList.remove("open");
+          sourceScrim.classList.remove("open");
+          sourceDrawer.setAttribute("aria-hidden", "true");
+        }
+
+        document.querySelectorAll("[data-source-drawer]").forEach(function (button) {
+          button.addEventListener("click", openSourceDrawer);
+        });
+        document.querySelectorAll("[data-close-drawer]").forEach(function (button) {
+          button.addEventListener("click", closeSourceDrawer);
+        });
+        sourceScrim.addEventListener("click", closeSourceDrawer);
+
+        var pulseDialog = document.getElementById("pulse-dialog");
+        document.querySelectorAll("[data-open-pulse]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            if (typeof pulseDialog.showModal === "function") {
+              pulseDialog.showModal();
+            } else {
+              pulseDialog.setAttribute("open", "");
+            }
+          });
+        });
+        document.querySelectorAll("[data-close-pulse]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            pulseDialog.close();
+          });
+        });
+        pulseDialog.addEventListener("click", function (event) {
+          if (event.target === pulseDialog) pulseDialog.close();
+        });
+
+        document.querySelectorAll("[data-moon-toast]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            showToast("New moon window: July 15 · a symbolic Hebrew-calendar estimate.");
+          });
+        });
+
+        document.querySelectorAll("[data-ritual-complete]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var done = button.getAttribute("aria-pressed") === "true";
+            button.setAttribute("aria-pressed", String(!done));
+            button.textContent = done ? (button.dataset.originalLabel || "Mark ritual complete") : "Ritual complete ✓";
+            if (!button.dataset.originalLabel) {
+              button.dataset.originalLabel = done ? "Mark ritual complete" : button.textContent.replace("Ritual complete ✓", "Mark ritual complete");
+            }
+            if (!done) showToast("Saved for this prototype session.");
+          });
+        });
+
+        document.querySelectorAll("[data-instrument-target]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var target = button.dataset.instrumentTarget;
+            document.querySelectorAll("[data-instrument-target]").forEach(function (item) {
+              item.classList.toggle("active", item.dataset.instrumentTarget === target);
+            });
+            document.querySelectorAll("[data-instrument-panel]").forEach(function (panel) {
+              panel.classList.toggle("active", panel.dataset.instrumentPanel === target);
+            });
+          });
+        });
+
+        function validCivilDate(value) {
+          var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+          if (!match) return null;
+          var year = Number(match[1]);
+          var month = Number(match[2]);
+          var day = Number(match[3]);
+          var date = new Date(year, month - 1, day, 12);
+          if (
+            date.getFullYear() !== year ||
+            date.getMonth() !== month - 1 ||
+            date.getDate() !== day ||
+            date > new Date()
+          ) {
+            return null;
+          }
+          return date;
+        }
+
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        }
+
+        function renderBirthProfile(module, value) {
+          var errorNode = module.querySelector(".form-error");
+          var output = module.querySelector(".birth-output");
+          var date = validCivilDate(value);
+
+          if (!date) {
+            errorNode.textContent = "Enter a complete birthday that is not in the future.";
+            output.classList.remove("ready");
+            output.innerHTML = "";
+            return;
+          }
+
+          try {
+            var hebrewDate = getHebrewDate(date);
+            var key = normalizeMonth(hebrewDate.month);
+            var profile = profiles[key];
+            if (!profile) throw new Error("Unsupported Hebrew month");
+            var day = Number(hebrewDate.day);
+            var exactMonth = hebrewDate.month === "Tamuz" ? "Tammuz" : hebrewDate.month;
+            var exactDate = day + " " + exactMonth + " " + hebrewDate.year;
+
+            errorNode.textContent = "";
+            output.innerHTML =
+              '<div class="profile-heading">' +
+                '<div><p class="eyebrow">Your birth season</p><h3>' +
+                  escapeHtml(profile.month) + ' · <bdi lang="he" dir="rtl">' + escapeHtml(profile.hebrew) + '</bdi>' +
+                '</h3><p class="microcopy">' + escapeHtml(exactDate) + ' · reflective prototype</p></div>' +
+                '<span class="profile-letter" aria-hidden="true">' + escapeHtml(profile.letter) + '</span>' +
+              '</div>' +
+              '<div class="profile-grid">' +
+                '<div class="profile-fact"><span>Sign</span><strong>' + escapeHtml(profile.sign) + '</strong></div>' +
+                '<div class="profile-fact"><span>Tribe</span><strong>' + escapeHtml(profile.tribe) + '</strong></div>' +
+                '<div class="profile-fact"><span>Letter</span><strong>' + escapeHtml(profile.letterName) + '</strong></div>' +
+                '<div class="profile-fact"><span>Moon</span><strong>' + escapeHtml(moonPhase(day)) + '</strong></div>' +
+                '<div class="profile-fact"><span>Faculty</span><strong>' + escapeHtml(profile.sense) + '</strong></div>' +
+                '<div class="profile-fact"><span>Calendar</span><strong>Hebrew year ' + escapeHtml(hebrewDate.year) + '</strong></div>' +
+              '</div>' +
+              '<p>' + escapeHtml(profile.reading) + '</p>' +
+              '<p class="tikkun-note"><strong>Your tikkun reflection</strong><br>' + escapeHtml(profile.tikkun) + '</p>' +
+              '<p class="microcopy">An invitational reflection, not a personality verdict or prediction.</p>';
+            output.classList.add("ready");
+            var scrollRegion = module.closest(".deck-card-scroll");
+            if (scrollRegion) {
+              window.setTimeout(function () {
+                scrollRegion.scrollTo({
+                  top: Math.max(0, output.offsetTop - 10),
+                  behavior: "smooth"
+                });
+              }, 80);
+            }
+            showToast("Your birth season is " + profile.month + ".");
+          } catch (error) {
+            errorNode.textContent = "This browser could not calculate the Hebrew calendar date. Try current Chrome, Safari, or Firefox.";
+            output.classList.remove("ready");
+            output.innerHTML = "";
+          }
+        }
+
+        document.querySelectorAll(".birth-module").forEach(function (module) {
+          var form = module.querySelector(".birth-form");
+          var input = module.querySelector(".birth-input");
+          var sample = module.querySelector(".sample-birthday");
+
+          form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            renderBirthProfile(module, input.value);
+          });
+
+          if (sample) {
+            sample.addEventListener("click", function () {
+              input.value = "1994-04-14";
+              renderBirthProfile(module, input.value);
+            });
+          }
+        });
+
+        var deckCards = Array.from(document.querySelectorAll("[data-deck-card]"));
+        var deckDots = Array.from(document.querySelectorAll("[data-deck-dot]"));
+        var deckLabels = ["Season", "Ritual", "Birth profile", "Coming up", "Ancient root"];
+
+        function setDeck(index) {
+          deckIndex = (index + deckCards.length) % deckCards.length;
+          deckCards.forEach(function (card, cardIndex) {
+            card.classList.toggle("active", cardIndex === deckIndex);
+            card.classList.toggle("before", cardIndex < deckIndex);
+            card.setAttribute("aria-hidden", String(cardIndex !== deckIndex));
+          });
+          deckDots.forEach(function (dot, dotIndex) {
+            dot.classList.toggle("active", dotIndex === deckIndex);
+            dot.setAttribute("aria-pressed", String(dotIndex === deckIndex));
+          });
+          document.getElementById("deck-status").textContent =
+            deckLabels[deckIndex] + " · card " + (deckIndex + 1) + " of " + deckCards.length;
+        }
+
+        document.querySelector("[data-deck-prev]").addEventListener("click", function () {
+          setDeck(deckIndex - 1);
+        });
+        document.querySelector("[data-deck-next]").addEventListener("click", function () {
+          setDeck(deckIndex + 1);
+        });
+        deckDots.forEach(function (dot) {
+          dot.addEventListener("click", function () {
+            setDeck(Number(dot.dataset.deckDot));
+          });
+        });
+
+        var deckStage = document.getElementById("deck-stage");
+        deckStage.addEventListener("pointerdown", function (event) {
+          deckStartX = event.clientX;
+        });
+        deckStage.addEventListener("pointerup", function (event) {
+          if (deckStartX === null) return;
+          var delta = event.clientX - deckStartX;
+          deckStartX = null;
+          if (Math.abs(delta) < 45) return;
+          setDeck(deckIndex + (delta < 0 ? 1 : -1));
+        });
+        deckStage.addEventListener("pointercancel", function () {
+          deckStartX = null;
+        });
+        deckStage.addEventListener("keydown", function (event) {
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            setDeck(deckIndex + 1);
+          }
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            setDeck(deckIndex - 1);
+          }
+        });
+
+        var themeSwitcher = document.getElementById("theme-switcher");
+        themeSwitcher.addEventListener("change", function () {
+          document.getElementById("theme-link").href = "../themes/" + themeSwitcher.value + ".css";
+          showToast("Theme: " + themeSwitcher.options[themeSwitcher.selectedIndex].text);
+        });
+
+        document.querySelectorAll("[data-viewport]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var value = button.dataset.viewport;
+            var frame = document.getElementById("sketch-frame");
+            frame.style.maxWidth = value === "full" ? "none" : value + "px";
+            document.body.classList.toggle("previewing", value !== "full");
+            document.querySelectorAll("[data-viewport]").forEach(function (item) {
+              item.setAttribute("aria-pressed", String(item === button));
+            });
+            showToast(value === "full" ? "Full viewport" : value + "px preview");
+          });
+        });
+
+        var tools = document.getElementById("sketch-tools");
+        var toolMenu = document.getElementById("tool-menu");
+        toolMenu.addEventListener("click", function () {
+          var open = tools.classList.toggle("open");
+          toolMenu.setAttribute("aria-expanded", String(open));
+        });
+
+        var annotationTip = document.getElementById("annotation-tip");
+        document.getElementById("annotation-toggle").addEventListener("click", function (event) {
+          annotationMode = !annotationMode;
+          document.body.classList.toggle("annotating", annotationMode);
+          event.currentTarget.setAttribute("aria-pressed", String(annotationMode));
+          event.currentTarget.textContent = annotationMode ? "Done" : "Inspect";
+          if (!annotationMode) annotationTip.style.display = "none";
+        });
+
+        document.addEventListener("pointermove", function (event) {
+          if (!annotationMode || event.target.closest("#sketch-tools")) return;
+          var target = event.target;
+          var style = getComputedStyle(target);
+          annotationTip.style.display = "block";
+          annotationTip.style.left = Math.min(event.clientX + 12, window.innerWidth - 275) + "px";
+          annotationTip.style.top = Math.min(event.clientY + 12, window.innerHeight - 90) + "px";
+          annotationTip.textContent =
+            target.tagName.toLowerCase() +
+            (target.className ? "." + String(target.className).trim().split(/\s+/).join(".") : "") +
+            " · " + style.fontSize +
+            " · " + style.color +
+            " · pad " + style.padding;
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            closeSourceDrawer();
+            if (pulseDialog.open) pulseDialog.close();
+          }
+        });
+
+        formatDemoDate();
+        setDeck(0);
+      })();
+    </script>
+  </body>
+</html>

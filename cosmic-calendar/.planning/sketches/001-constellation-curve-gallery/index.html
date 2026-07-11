@@ -1,0 +1,1650 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0f2160">
+    <title>Cosmic Calendar — Constellation Curve Gallery</title>
+    <link id="theme-link" rel="stylesheet" href="../themes/default.css">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: #020518;
+      }
+
+      body {
+        color: var(--color-text);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      button,
+      select {
+        font: inherit;
+      }
+
+      button {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #preview-shell {
+        width: 100%;
+        height: 100dvh;
+        margin: 0 auto;
+        overflow: hidden;
+        background: var(--color-bg);
+        transition: width 180ms ease, box-shadow 180ms ease;
+      }
+
+      #sketch-frame {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 520px;
+        overflow: hidden;
+        isolation: isolate;
+        background:
+          radial-gradient(circle at 52% 48%, rgba(44, 72, 151, 0.48) 0%, transparent 38%),
+          radial-gradient(circle at 10% 0%, rgba(128, 145, 205, 0.12), transparent 31%),
+          linear-gradient(150deg, var(--color-bg) 0%, var(--color-bg-deep) 118%);
+        touch-action: none;
+        user-select: none;
+      }
+
+      #sketch-frame::before {
+        position: absolute;
+        z-index: 1;
+        inset: -30%;
+        pointer-events: none;
+        content: "";
+        background-image:
+          radial-gradient(circle at 12% 22%, rgba(243, 241, 237, 0.9) 0 0.6px, transparent 0.9px),
+          radial-gradient(circle at 74% 16%, rgba(243, 241, 237, 0.72) 0 0.7px, transparent 1px),
+          radial-gradient(circle at 38% 82%, rgba(243, 241, 237, 0.62) 0 0.55px, transparent 0.9px),
+          radial-gradient(circle at 88% 71%, rgba(214, 179, 106, 0.72) 0 0.7px, transparent 1px);
+        background-position: 0 0, 33px 57px, 71px 19px, 117px 94px;
+        background-size: 127px 137px, 183px 169px, 151px 197px, 239px 211px;
+        opacity: 0.66;
+        transform: rotate(-5deg);
+      }
+
+      #sketch-frame::after {
+        position: absolute;
+        z-index: 20;
+        inset: 0;
+        pointer-events: none;
+        content: "";
+        background:
+          linear-gradient(105deg, transparent 22%, rgba(255, 255, 255, 0.025) 48%, transparent 68%),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.012) 0 1px, transparent 1px 4px);
+        box-shadow: inset 0 0 120px rgba(0, 2, 18, 0.4);
+        mix-blend-mode: screen;
+        opacity: 0.6;
+      }
+
+      .variant-nav {
+        position: absolute;
+        z-index: 100;
+        top: 0;
+        left: 0;
+        display: flex;
+        width: 100%;
+        min-height: 48px;
+        gap: 4px;
+        padding: calc(env(safe-area-inset-top, 0px) + 7px) 9px 7px;
+        overflow-x: auto;
+        border-bottom: 1px solid rgba(243, 241, 237, 0.12);
+        background: linear-gradient(to bottom, rgba(4, 10, 40, 0.82), rgba(4, 10, 40, 0.38));
+        backdrop-filter: blur(12px);
+        scrollbar-width: none;
+      }
+
+      .variant-nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      .variant-tab {
+        min-width: max-content;
+        min-height: 44px;
+        padding: 7px 11px;
+        border: 1px solid transparent;
+        border-radius: var(--radius-full);
+        background: transparent;
+        color: var(--color-text-muted);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        line-height: 1;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+      }
+
+      .variant-tab:hover,
+      .variant-tab:focus-visible {
+        color: var(--color-text);
+      }
+
+      .variant-tab.active {
+        border-color: rgba(243, 241, 237, 0.32);
+        background: rgba(243, 241, 237, 0.08);
+        color: var(--color-text);
+      }
+
+      .variant-tab:focus-visible,
+      .icon-button:focus-visible,
+      .auto-toggle:focus-visible,
+      .focus-card:focus-visible,
+      .drawer-close:focus-visible,
+      .tool-button:focus-visible,
+      .tool-select:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      .gallery-stage {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        overflow: hidden;
+        cursor: grab;
+      }
+
+      .gallery-stage.dragging {
+        cursor: grabbing;
+      }
+
+      .atlas-grid,
+      .orbit-grid,
+      .meridian-grid {
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 400ms ease;
+      }
+
+      .atlas-grid {
+        background:
+          radial-gradient(circle at 50% 52%, transparent 0 34%, rgba(243, 241, 237, 0.07) 34.2% 34.4%, transparent 34.7%),
+          linear-gradient(90deg, transparent 49.9%, rgba(243, 241, 237, 0.045) 50%, transparent 50.2%),
+          linear-gradient(0deg, transparent 49.9%, rgba(243, 241, 237, 0.045) 50%, transparent 50.2%);
+      }
+
+      .orbit-grid {
+        inset: 8% -30%;
+        border: 1px solid rgba(214, 179, 106, 0.14);
+        border-radius: 50%;
+        transform: rotate(-24deg);
+      }
+
+      .orbit-grid::before,
+      .orbit-grid::after {
+        position: absolute;
+        inset: 18%;
+        border: 1px solid rgba(243, 241, 237, 0.09);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .orbit-grid::after {
+        inset: 38%;
+        border-color: rgba(214, 179, 106, 0.18);
+      }
+
+      .meridian-grid {
+        inset: -12%;
+        border: 1px solid rgba(243, 241, 237, 0.14);
+        border-radius: 50%;
+        background:
+          repeating-radial-gradient(circle at center, transparent 0 39px, rgba(243, 241, 237, 0.055) 40px 41px),
+          repeating-conic-gradient(from 0deg, rgba(243, 241, 237, 0.055) 0deg 0.4deg, transparent 0.4deg 15deg);
+        transform: scale(1.08);
+      }
+
+      body[data-variant="a"] .atlas-grid,
+      body[data-variant="b"] .orbit-grid,
+      body[data-variant="c"] .meridian-grid {
+        opacity: 1;
+      }
+
+      .brand {
+        position: absolute;
+        z-index: 42;
+        top: calc(env(safe-area-inset-top, 0px) + 64px);
+        left: 17px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .brand-mark {
+        position: relative;
+        width: 19px;
+        height: 19px;
+        border: 1px solid rgba(243, 241, 237, 0.56);
+        border-radius: 50%;
+      }
+
+      .brand-mark::before {
+        position: absolute;
+        inset: 4px;
+        border: 1px solid rgba(214, 179, 106, 0.72);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .brand-mark::after {
+        position: absolute;
+        top: 1px;
+        right: -2px;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        box-shadow: 0 0 9px rgba(214, 179, 106, 0.72);
+        content: "";
+      }
+
+      .brand-name {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+      }
+
+      .edition {
+        position: absolute;
+        z-index: 42;
+        top: calc(env(safe-area-inset-top, 0px) + 68px);
+        right: 17px;
+        color: var(--color-text-muted);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.12em;
+        pointer-events: none;
+      }
+
+      .intro-copy {
+        position: absolute;
+        z-index: 3;
+        top: 20%;
+        left: 50%;
+        width: min(95vw, 520px);
+        text-align: center;
+        pointer-events: none;
+        transform: translateX(-50%);
+        transition: opacity 350ms ease, transform 350ms ease;
+      }
+
+      .has-moved .intro-copy {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+      }
+
+      .intro-kicker {
+        margin: 0 0 10px;
+        color: var(--color-accent);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      .intro-title {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(38px, 11.4vw, 72px);
+        font-weight: 400;
+        letter-spacing: -0.045em;
+        line-height: 0.86;
+      }
+
+      .intro-title em {
+        font-weight: 400;
+      }
+
+      .intro-subtitle {
+        max-width: 290px;
+        margin: 14px auto 0;
+        color: var(--color-text-muted);
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-style: italic;
+        line-height: 1.45;
+      }
+
+      #sprite-layer {
+        position: absolute;
+        z-index: 8;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .constellation {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: clamp(118px, 39vw, 210px);
+        aspect-ratio: 1;
+        color: rgba(243, 241, 237, 0.82);
+        opacity: 0;
+        transform-origin: center;
+        will-change: transform, opacity, filter;
+        contain: layout style paint;
+        filter: drop-shadow(0 0 8px rgba(158, 181, 255, 0.09));
+      }
+
+      .constellation.focused {
+        color: var(--color-text);
+        filter:
+          drop-shadow(0 0 5px rgba(243, 241, 237, 0.44))
+          drop-shadow(0 0 22px rgba(121, 151, 236, 0.24));
+      }
+
+      .constellation-svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .constellation-line {
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 0.8;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .constellation-echo {
+        fill: none;
+        stroke: currentColor;
+        stroke-dasharray: 1 4;
+        stroke-linecap: round;
+        stroke-width: 0.45;
+        opacity: 0.34;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .star {
+        fill: currentColor;
+        stroke: currentColor;
+        stroke-width: 0.2;
+        vector-effect: non-scaling-stroke;
+      }
+
+      .star.major {
+        fill: var(--color-accent);
+        stroke: rgba(243, 241, 237, 0.72);
+        stroke-width: 0.45;
+      }
+
+      .zodiac-watermark {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 0.45;
+        opacity: 0;
+        vector-effect: non-scaling-stroke;
+      }
+
+      body[data-variant="b"] .constellation {
+        color: rgba(240, 235, 218, 0.78);
+      }
+
+      body[data-variant="b"] .constellation.focused {
+        color: #fff7e4;
+        filter:
+          drop-shadow(0 0 6px rgba(214, 179, 106, 0.48))
+          drop-shadow(0 0 24px rgba(214, 179, 106, 0.24));
+      }
+
+      body[data-variant="b"] .zodiac-watermark {
+        opacity: 0.2;
+      }
+
+      body[data-variant="c"] .constellation {
+        color: rgba(243, 241, 237, 0.64);
+        filter: none;
+      }
+
+      body[data-variant="c"] .constellation-line {
+        stroke-width: 0.55;
+      }
+
+      body[data-variant="c"] .constellation.focused {
+        color: rgba(243, 241, 237, 0.94);
+        filter: drop-shadow(0 0 10px rgba(243, 241, 237, 0.18));
+      }
+
+      .focus-panel {
+        position: absolute;
+        z-index: 45;
+        right: 14px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+        left: 14px;
+        display: grid;
+        grid-template-columns: 44px 1fr 44px;
+        align-items: center;
+        gap: 11px;
+        pointer-events: none;
+      }
+
+      .icon-button {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border: 1px solid rgba(243, 241, 237, 0.2);
+        border-radius: 50%;
+        background: rgba(4, 12, 47, 0.42);
+        color: var(--color-text);
+        backdrop-filter: blur(8px);
+        cursor: pointer;
+        pointer-events: auto;
+        transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+      }
+
+      .icon-button:hover,
+      .icon-button:active {
+        border-color: rgba(243, 241, 237, 0.5);
+        background: rgba(243, 241, 237, 0.1);
+      }
+
+      .icon-button:active {
+        transform: scale(0.94);
+      }
+
+      .focus-card {
+        min-width: 0;
+        min-height: 66px;
+        padding: 10px 12px;
+        overflow: hidden;
+        border: 1px solid rgba(243, 241, 237, 0.2);
+        border-radius: 2px;
+        background: linear-gradient(110deg, rgba(8, 20, 67, 0.74), rgba(8, 20, 67, 0.36));
+        color: var(--color-text);
+        text-align: left;
+        backdrop-filter: blur(12px);
+        cursor: pointer;
+        pointer-events: auto;
+        transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+      }
+
+      .focus-card:hover,
+      .focus-card:active {
+        border-color: rgba(214, 179, 106, 0.56);
+        background: linear-gradient(110deg, rgba(14, 31, 88, 0.86), rgba(8, 20, 67, 0.5));
+      }
+
+      .focus-card:active {
+        transform: translateY(1px);
+      }
+
+      .focus-card-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .focus-name {
+        overflow: hidden;
+        font-family: var(--font-display);
+        font-size: 21px;
+        font-weight: 400;
+        letter-spacing: -0.015em;
+        line-height: 1;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .focus-hebrew {
+        color: var(--color-accent);
+        font-family: var(--font-hebrew);
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .focus-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 7px;
+        color: var(--color-text-muted);
+        font-size: 8px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      .focus-meta-dot {
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background: var(--color-accent);
+      }
+
+      .edge-index {
+        position: absolute;
+        z-index: 41;
+        top: 50%;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--color-text-muted);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.1em;
+        pointer-events: none;
+        transform: translateY(-50%) rotate(90deg);
+        transform-origin: right center;
+      }
+
+      .edge-index-line {
+        width: 54px;
+        height: 1px;
+        background: linear-gradient(90deg, var(--color-accent), rgba(243, 241, 237, 0.15));
+      }
+
+      .hint {
+        position: absolute;
+        z-index: 41;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 19px);
+        left: 50%;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--color-text-muted);
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        pointer-events: none;
+        transform: translateX(-50%);
+        transition: opacity 240ms ease;
+      }
+
+      .has-moved .hint {
+        opacity: 0.36;
+      }
+
+      .hint-line {
+        position: relative;
+        width: 17px;
+        height: 25px;
+        border: 1px solid rgba(243, 241, 237, 0.3);
+        border-radius: 999px;
+      }
+
+      .hint-line::after {
+        position: absolute;
+        top: 5px;
+        left: 50%;
+        width: 2px;
+        height: 5px;
+        border-radius: 99px;
+        background: var(--color-accent);
+        content: "";
+        transform: translateX(-50%);
+        animation: hint-move 1.7s ease-in-out infinite;
+      }
+
+      @keyframes hint-move {
+        0%,
+        100% {
+          opacity: 0.35;
+          transform: translate(-50%, 0);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(-50%, 8px);
+        }
+      }
+
+      .auto-toggle {
+        position: absolute;
+        z-index: 46;
+        right: 14px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 19px);
+        min-width: 64px;
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid rgba(243, 241, 237, 0.2);
+        border-radius: var(--radius-full);
+        background: rgba(4, 12, 47, 0.48);
+        color: var(--color-text-muted);
+        font-size: 8px;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        backdrop-filter: blur(8px);
+        cursor: pointer;
+        transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+      }
+
+      .auto-toggle.active {
+        border-color: rgba(214, 179, 106, 0.65);
+        background: rgba(214, 179, 106, 0.13);
+        color: var(--color-accent);
+      }
+
+      .month-drawer {
+        position: absolute;
+        z-index: 120;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        max-height: min(78dvh, 640px);
+        padding: 13px 20px calc(env(safe-area-inset-bottom, 0px) + 28px);
+        overflow-y: auto;
+        border-top: 1px solid rgba(243, 241, 237, 0.24);
+        border-radius: 22px 22px 0 0;
+        background:
+          linear-gradient(165deg, rgba(17, 37, 100, 0.98), rgba(4, 10, 38, 0.99)),
+          var(--color-bg-deep);
+        box-shadow: 0 -30px 90px rgba(0, 2, 20, 0.58);
+        transform: translateY(105%);
+        visibility: hidden;
+        transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), visibility 420ms;
+      }
+
+      .month-drawer.open {
+        transform: translateY(0);
+        visibility: visible;
+      }
+
+      .drawer-grip {
+        width: 34px;
+        height: 3px;
+        margin: 0 auto 14px;
+        border-radius: 99px;
+        background: rgba(243, 241, 237, 0.25);
+      }
+
+      .drawer-close {
+        position: absolute;
+        top: 20px;
+        right: 18px;
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border: 1px solid rgba(243, 241, 237, 0.16);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--color-text);
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .drawer-eyebrow {
+        margin: 18px 0 8px;
+        color: var(--color-accent);
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .drawer-title {
+        max-width: calc(100% - 54px);
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(42px, 13vw, 74px);
+        font-weight: 400;
+        letter-spacing: -0.045em;
+        line-height: 0.9;
+      }
+
+      .drawer-hebrew {
+        margin-left: 8px;
+        color: var(--color-accent);
+        font-family: var(--font-hebrew);
+        font-size: 0.72em;
+      }
+
+      .drawer-sign {
+        margin: 13px 0 24px;
+        color: var(--color-text-muted);
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .drawer-energy {
+        max-width: 33rem;
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: clamp(21px, 6vw, 31px);
+        line-height: 1.15;
+      }
+
+      .ritual {
+        position: relative;
+        max-width: 33rem;
+        margin-top: 28px;
+        padding: 17px 17px 17px 42px;
+        border-top: 1px solid rgba(214, 179, 106, 0.34);
+        border-bottom: 1px solid rgba(214, 179, 106, 0.16);
+        color: rgba(243, 241, 237, 0.86);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .ritual::before {
+        position: absolute;
+        top: 16px;
+        left: 11px;
+        color: var(--color-accent);
+        content: "◐";
+        font-size: 17px;
+      }
+
+      .drawer-letter {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 22px;
+        color: var(--color-text-muted);
+        font-size: 9px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+      }
+
+      .drawer-letter-glyph {
+        color: rgba(243, 241, 237, 0.84);
+        font-family: var(--font-hebrew);
+        font-size: 52px;
+        letter-spacing: 0;
+        line-height: 1;
+      }
+
+      #drawer-scrim {
+        position: absolute;
+        z-index: 110;
+        inset: 0;
+        border: 0;
+        background: rgba(0, 2, 18, 0.52);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 300ms ease;
+      }
+
+      #drawer-scrim.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #sketch-tools {
+        position: fixed;
+        z-index: 9999;
+        right: max(10px, env(safe-area-inset-right, 0px));
+        bottom: max(10px, env(safe-area-inset-bottom, 0px));
+        display: flex;
+        max-width: calc(100vw - 20px);
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 11px;
+        background: rgba(0, 0, 0, 0.74);
+        color: white;
+        font-family: system-ui, sans-serif;
+        font-size: 11px;
+        opacity: 0.22;
+        transform: translateY(70%);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      #sketch-tools:hover,
+      #sketch-tools:focus-within,
+      #sketch-tools.open {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .tool-button,
+      .tool-select {
+        min-height: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.07);
+        color: white;
+        cursor: pointer;
+      }
+
+      .tool-button {
+        min-width: 34px;
+        padding: 5px 8px;
+      }
+
+      .tool-select {
+        max-width: 100px;
+        padding: 5px 7px;
+      }
+
+      .annotation-tip {
+        position: fixed;
+        z-index: 10000;
+        display: none;
+        max-width: 230px;
+        padding: 7px 9px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        font: 10px/1.4 var(--font-mono);
+        pointer-events: none;
+      }
+
+      .annotating *:hover {
+        outline: 1px dashed #f0bd5b;
+        outline-offset: 2px;
+      }
+
+      .variant-caption {
+        position: absolute;
+        z-index: 42;
+        top: calc(env(safe-area-inset-top, 0px) + 93px);
+        left: 18px;
+        max-width: 210px;
+        color: var(--color-text-muted);
+        font-family: var(--font-display);
+        font-size: 10px;
+        font-style: italic;
+        line-height: 1.35;
+        pointer-events: none;
+        transition: opacity 180ms ease;
+      }
+
+      body[data-variant="b"] #sketch-frame {
+        background:
+          radial-gradient(circle at 50% 48%, rgba(112, 83, 42, 0.18) 0%, transparent 27%),
+          radial-gradient(circle at 70% 14%, rgba(69, 92, 174, 0.2), transparent 34%),
+          linear-gradient(155deg, var(--color-bg) 0%, var(--color-bg-deep) 120%);
+      }
+
+      body[data-variant="c"] #sketch-frame {
+        background:
+          radial-gradient(circle at center, rgba(46, 68, 137, 0.24), transparent 44%),
+          linear-gradient(165deg, #10225c, var(--color-bg-deep));
+      }
+
+      body[data-variant="c"] #sketch-frame::before {
+        opacity: 0.38;
+      }
+
+      @media (min-width: 720px) {
+        .brand,
+        .variant-caption {
+          left: 28px;
+        }
+
+        .edition {
+          right: 28px;
+        }
+
+        .focus-panel {
+          right: 28px;
+          bottom: 32px;
+          left: auto;
+          width: min(430px, 40vw);
+        }
+
+        .hint {
+          bottom: 32px;
+          left: 28px;
+          transform: none;
+        }
+
+        .auto-toggle {
+          right: calc(min(430px, 40vw) + 47px);
+          bottom: 34px;
+        }
+
+        .constellation {
+          width: clamp(150px, 18vw, 240px);
+        }
+
+        .month-drawer {
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: auto;
+          width: min(520px, 46vw);
+          max-height: none;
+          padding: 48px 42px;
+          border-top: 0;
+          border-left: 1px solid rgba(243, 241, 237, 0.24);
+          border-radius: 0;
+          transform: translateX(105%);
+        }
+
+        .month-drawer.open {
+          transform: translateX(0);
+        }
+
+        .drawer-grip {
+          display: none;
+        }
+      }
+
+      @media (max-width: 430px) {
+        .variant-nav {
+          padding-right: 48px;
+        }
+
+        .variant-tab {
+          font-size: 9px;
+        }
+
+        .intro-copy {
+          top: 23%;
+        }
+
+        .focus-panel {
+          grid-template-columns: 44px 1fr 44px;
+          gap: 8px;
+        }
+
+        .icon-button {
+          width: 44px;
+          height: 44px;
+        }
+
+        .edition {
+          display: none;
+        }
+
+        .variant-caption {
+          max-width: 175px;
+        }
+
+        #sketch-tools {
+          top: calc(env(safe-area-inset-top, 0px) + 56px);
+          right: 7px;
+          bottom: auto;
+          max-width: calc(100vw - 14px);
+          flex-direction: row-reverse;
+          transform: translateX(calc(100% - 36px));
+        }
+
+        #sketch-tools:hover,
+        #sketch-tools:focus-within,
+        #sketch-tools.open {
+          transform: translateX(0);
+        }
+
+        .intro-title {
+          font-size: clamp(38px, 11vw, 47px);
+        }
+
+        .tool-select,
+        .tool-button:not(.tool-menu) {
+          display: none;
+        }
+
+        #sketch-tools.open .tool-select,
+        #sketch-tools.open .tool-button {
+          display: block;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+        }
+
+        .hint-line::after {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body data-variant="a">
+    <div id="preview-shell">
+      <div id="sketch-frame">
+        <nav class="variant-nav" aria-label="Sketch variants">
+          <button class="variant-tab active" type="button" data-variant-target="a">A · Celestial Ribbon ★</button>
+          <button class="variant-tab" type="button" data-variant-target="b">B · Orrery</button>
+          <button class="variant-tab" type="button" data-variant-target="c">C · Engraved Meridian</button>
+        </nav>
+
+        <main id="gallery-stage" class="gallery-stage" tabindex="0" aria-label="Scrollable constellation gallery">
+          <div class="atlas-grid" aria-hidden="true"></div>
+          <div class="orbit-grid" aria-hidden="true"></div>
+          <div class="meridian-grid" aria-hidden="true"></div>
+
+          <div class="brand" aria-hidden="true">
+            <span class="brand-mark"></span>
+            <span class="brand-name">Cosmic Calendar</span>
+          </div>
+          <div class="edition" aria-hidden="true">MMXXVI · CELESTIAL INDEX</div>
+          <div id="variant-caption" class="variant-caption">A loose procession of months with the strongest near-camera focus.</div>
+
+          <header class="intro-copy">
+            <p class="intro-kicker">The celestial year</p>
+            <h1 class="intro-title">Twelve seasons,<br><em>one orbit.</em></h1>
+            <p class="intro-subtitle">Move through the Hebrew months and meet the constellation each season carries.</p>
+          </header>
+
+          <div id="sprite-layer" aria-hidden="true"></div>
+
+          <div class="edge-index" aria-hidden="true">
+            <span id="edge-count">01 / 12</span>
+            <span class="edge-index-line"></span>
+          </div>
+
+          <section class="focus-panel" aria-label="Focused month">
+            <button id="previous-month" class="icon-button" type="button" aria-label="Previous month">←</button>
+            <button id="focus-card" class="focus-card" type="button" aria-haspopup="dialog">
+              <span class="focus-card-top">
+                <span id="focus-name" class="focus-name">Tishrei</span>
+                <span id="focus-hebrew" class="focus-hebrew" lang="he" dir="rtl">תשרי</span>
+              </span>
+              <span class="focus-meta">
+                <span id="focus-sign">Libra · ♎</span>
+                <span class="focus-meta-dot"></span>
+                <span id="focus-letter">Letter Lamed</span>
+              </span>
+            </button>
+            <button id="next-month" class="icon-button" type="button" aria-label="Next month">→</button>
+          </section>
+
+          <div class="hint" aria-hidden="true">
+            <span class="hint-line"></span>
+            <span>Swipe to travel</span>
+          </div>
+          <button id="auto-toggle" class="auto-toggle" type="button" aria-pressed="false">Auto · off</button>
+        </main>
+
+        <button id="drawer-scrim" type="button" aria-label="Close month reading"></button>
+        <aside id="month-drawer" class="month-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+          <div class="drawer-grip" aria-hidden="true"></div>
+          <button id="drawer-close" class="drawer-close" type="button" aria-label="Close month reading">×</button>
+          <p class="drawer-eyebrow">Season preview</p>
+          <h2 id="drawer-title" class="drawer-title">
+            <span id="drawer-name">Tishrei</span>
+            <span id="drawer-hebrew" class="drawer-hebrew" lang="he" dir="rtl">תשרי</span>
+          </h2>
+          <p id="drawer-sign" class="drawer-sign">Libra · Letter Lamed · Balance</p>
+          <p id="drawer-energy" class="drawer-energy">New beginnings, balance, and the invitation to begin again.</p>
+          <p id="drawer-ritual" class="ritual">Write one thing you are releasing and one thing you are calling in. Say both aloud.</p>
+          <div class="drawer-letter">
+            <span id="drawer-letter-name">The month is formed through Lamed</span>
+            <span id="drawer-letter-glyph" class="drawer-letter-glyph" lang="he" dir="rtl" aria-hidden="true">ל</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="sketch-tools" aria-label="Sketch tools">
+      <button id="tool-menu" class="tool-button tool-menu" type="button" aria-label="Toggle sketch tools">•••</button>
+      <select id="theme-switcher" class="tool-select" aria-label="Theme">
+        <option value="default">Indigo atlas</option>
+        <option value="eclipse">Eclipse</option>
+      </select>
+      <button class="tool-button" type="button" data-viewport="390" title="Phone viewport">390</button>
+      <button class="tool-button" type="button" data-viewport="768" title="Tablet viewport">768</button>
+      <button class="tool-button" type="button" data-viewport="full" title="Full viewport">Full</button>
+      <button id="annotation-toggle" class="tool-button" type="button" aria-pressed="false">Inspect</button>
+    </div>
+    <div id="annotation-tip" class="annotation-tip" role="status"></div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var TAU = Math.PI * 2;
+        var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var stage = document.getElementById("gallery-stage");
+        var frame = document.getElementById("sketch-frame");
+        var layer = document.getElementById("sprite-layer");
+        var focusCard = document.getElementById("focus-card");
+        var drawer = document.getElementById("month-drawer");
+        var drawerScrim = document.getElementById("drawer-scrim");
+        var drawerClose = document.getElementById("drawer-close");
+        var autoToggle = document.getElementById("auto-toggle");
+        var targetProgress = 0.02;
+        var currentProgress = 0.02;
+        var isDragging = false;
+        var previousPointer = { x: 0, y: 0 };
+        var dragVelocity = 0;
+        var autoScroll = false;
+        var hasMoved = false;
+        var focusedSprite = -1;
+        var focusedMonth = 6;
+        var lastTime = performance.now();
+        var variant = "a";
+        var annotationMode = false;
+        var sprites = [];
+
+        var months = [
+          {
+            name: "Nisan",
+            hebrew: "ניסן",
+            sign: "Aries",
+            glyph: "♈",
+            letter: "ה",
+            letterName: "Heh",
+            energy: "Freedom, liberation, and the courage to leave what no longer belongs to you.",
+            ritual: "Name one thing you have been carrying that is no longer yours. Set it down.",
+            points: [[22, 126], [45, 92], [75, 81], [104, 48], [143, 61], [170, 96], [196, 79], [210, 49]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]]
+          },
+          {
+            name: "Iyar",
+            hebrew: "אייר",
+            sign: "Taurus",
+            glyph: "♉",
+            letter: "ו",
+            letterName: "Vav",
+            energy: "Healing, integration, and the patient path between freedom and revelation.",
+            ritual: "Count one small sign of healing each day this week. Let the count be enough.",
+            points: [[30, 75], [61, 55], [92, 66], [113, 103], [153, 101], [186, 72], [206, 93], [173, 131], [129, 147], [83, 133]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [4, 7], [7, 8], [8, 9], [9, 3]]
+          },
+          {
+            name: "Sivan",
+            hebrew: "סיון",
+            sign: "Gemini",
+            glyph: "♊",
+            letter: "ז",
+            letterName: "Zayin",
+            energy: "Revelation, exchange, and the moment something new asks to be received.",
+            ritual: "Read one page that changes your mind about something small. Let it.",
+            points: [[48, 39], [70, 76], [63, 120], [47, 171], [104, 56], [119, 101], [111, 155], [165, 42], [151, 86], [161, 137], [184, 178]],
+            edges: [[0, 1], [1, 2], [2, 3], [4, 5], [5, 6], [7, 8], [8, 9], [9, 10], [1, 4], [5, 8], [6, 9]]
+          },
+          {
+            name: "Tammuz",
+            hebrew: "תמוז",
+            sign: "Cancer",
+            glyph: "♋",
+            letter: "ח",
+            letterName: "Chet",
+            energy: "Vision, honest seeing, and the choice to look directly at what is here.",
+            ritual: "Write one clear sentence about something you have been avoiding.",
+            points: [[27, 110], [56, 86], [89, 91], [116, 67], [151, 73], [186, 48], [170, 112], [193, 153], [144, 138], [108, 157], [72, 141], [39, 163]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [4, 6], [6, 7], [6, 8], [8, 9], [9, 10], [10, 11]]
+          },
+          {
+            name: "Av",
+            hebrew: "אב",
+            sign: "Leo",
+            glyph: "♌",
+            letter: "ט",
+            letterName: "Tet",
+            energy: "Grief, courage, and the seed of rebuilding hidden inside what has been lost.",
+            ritual: "Give a loss five honest minutes. Then notice the smallest thing that remains.",
+            points: [[28, 153], [55, 130], [78, 96], [110, 90], [134, 59], [174, 49], [201, 72], [169, 102], [151, 135], [116, 154], [86, 173]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [3, 7], [7, 8], [8, 9], [9, 10]]
+          },
+          {
+            name: "Elul",
+            hebrew: "אלול",
+            sign: "Virgo",
+            glyph: "♍",
+            letter: "י",
+            letterName: "Yud",
+            energy: "Return, reflection, and the quiet preparation that makes renewal possible.",
+            ritual: "Carry one honest question without trying to answer it yet.",
+            points: [[46, 41], [68, 72], [61, 112], [89, 143], [120, 124], [132, 80], [166, 55], [193, 79], [176, 119], [192, 164], [147, 155], [112, 181]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [8, 10], [10, 11]]
+          },
+          {
+            name: "Tishrei",
+            hebrew: "תשרי",
+            sign: "Libra",
+            glyph: "♎",
+            letter: "ל",
+            letterName: "Lamed",
+            energy: "New beginnings, balance, and the invitation to begin again with greater honesty.",
+            ritual: "Write one thing you are releasing and one thing you are calling in. Say both aloud.",
+            points: [[25, 117], [57, 100], [92, 104], [116, 69], [145, 101], [180, 96], [211, 116], [82, 145], [151, 146]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [2, 7], [7, 8], [8, 4]]
+          },
+          {
+            name: "Cheshvan",
+            hebrew: "חשון",
+            sign: "Scorpio",
+            glyph: "♏",
+            letter: "נ",
+            letterName: "Nun",
+            energy: "Quiet depth, shadow work, and the inner room that appears after the noise.",
+            ritual: "Spend ten minutes without a screen. Notice what rises before you name it.",
+            points: [[29, 61], [53, 89], [86, 75], [109, 111], [138, 94], [157, 127], [192, 116], [209, 145], [178, 169], [147, 151], [113, 175], [73, 156], [47, 181]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12]]
+          },
+          {
+            name: "Kislev",
+            hebrew: "כסלו",
+            sign: "Sagittarius",
+            glyph: "♐",
+            letter: "ס",
+            letterName: "Samekh",
+            energy: "Dreams, fire, expansion, and the light you choose to kindle in a dark season.",
+            ritual: "Light one candle before any screen. Sit with it for one full minute.",
+            points: [[30, 174], [61, 148], [92, 121], [122, 92], [151, 61], [194, 32], [163, 105], [185, 131], [116, 138], [86, 91], [55, 66]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [3, 6], [6, 7], [3, 8], [2, 9], [9, 10]]
+          },
+          {
+            name: "Tevet",
+            hebrew: "טבת",
+            sign: "Capricorn",
+            glyph: "♑",
+            letter: "ע",
+            letterName: "Ayin",
+            energy: "Discipline, contraction, and the commitment that survives when inspiration is gone.",
+            ritual: "Choose one small daily practice for this week. Do it without negotiating.",
+            points: [[27, 116], [51, 84], [83, 91], [106, 62], [134, 84], [163, 71], [196, 96], [175, 124], [192, 157], [151, 148], [126, 178], [91, 153], [55, 169]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [7, 9], [9, 10], [9, 11], [11, 12]]
+          },
+          {
+            name: "Shevat",
+            hebrew: "שבט",
+            sign: "Aquarius",
+            glyph: "♒",
+            letter: "צ",
+            letterName: "Tzadi",
+            energy: "Renewal, vision, and the first hidden movement of what is beginning to grow.",
+            ritual: "Eat a piece of fruit slowly. Think about what you are tending this year.",
+            points: [[27, 66], [54, 92], [84, 70], [111, 101], [142, 79], [174, 106], [206, 82], [42, 139], [75, 160], [110, 139], [144, 166], [184, 143]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [7, 8], [8, 9], [9, 10], [10, 11]]
+          },
+          {
+            name: "Adar",
+            hebrew: "אדר",
+            sign: "Pisces",
+            glyph: "♓",
+            letter: "ק",
+            letterName: "Kuf",
+            energy: "Joy, laughter, reversal, and the liberating wisdom of turning expectation upside down.",
+            ritual: "Do one spontaneous, slightly silly thing. Treat joy as a practice.",
+            points: [[35, 66], [65, 53], [93, 77], [78, 108], [53, 136], [79, 169], [117, 150], [139, 117], [158, 83], [190, 62], [204, 98], [180, 132], [197, 173]],
+            edges: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [3, 8]]
+          }
+        ];
+
+        var variantSettings = {
+          a: {
+            caption: "A loose procession of months with the strongest near-camera focus.",
+            focusDistance: 2.1,
+            baseScale: 0.34,
+            focusScale: 2.1,
+            worldScaleX: 0.24,
+            worldScaleY: 0.14,
+            opacityDistance: 6.3
+          },
+          b: {
+            caption: "A calmer orbit with amber focus cues and more deliberate spacing.",
+            focusDistance: 2.65,
+            baseScale: 0.3,
+            focusScale: 1.75,
+            worldScaleX: 0.235,
+            worldScaleY: 0.13,
+            opacityDistance: 7.4
+          },
+          c: {
+            caption: "A flatter engraved chart with denser linework and restrained scaling.",
+            focusDistance: 2.85,
+            baseScale: 0.3,
+            focusScale: 1.32,
+            worldScaleX: 0.21,
+            worldScaleY: 0.115,
+            opacityDistance: 7.9
+          }
+        };
+
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function makeConstellationSvg(month, spriteIndex) {
+          var linePoints = month.points.map(function (point) {
+            return point[0] + "," + point[1];
+          }).join(" ");
+          var echoPoints = month.points.slice().reverse().map(function (point, index) {
+            var offset = index % 2 === 0 ? 5 : -4;
+            return (point[0] + offset) + "," + (point[1] + 3);
+          }).join(" ");
+          var stars = month.points.map(function (point, index) {
+            var major = index === 2 || index === month.points.length - 2;
+            var radius = major ? 2.1 : (index % 3 === 0 ? 1.45 : 1.05);
+            return '<circle class="star' + (major ? ' major' : '') + '" cx="' + point[0] + '" cy="' + point[1] + '" r="' + radius + '"></circle>';
+          }).join("");
+          var connections = month.edges.map(function (edge) {
+            var a = month.points[edge[0]];
+            var b = month.points[edge[1]];
+            return '<line class="constellation-line" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"></line>';
+          }).join("");
+          var watermarkPath = "M46 120 C66 43 174 42 195 120 C174 194 68 194 46 120 Z";
+          return '<svg class="constellation-svg" viewBox="0 0 240 220" role="img" aria-label="' +
+            escapeHtml(month.sign + " constellation") + '">' +
+            '<title>' + escapeHtml(month.sign + " constellation") + '</title>' +
+            '<path class="zodiac-watermark" d="' + watermarkPath + '"></path>' +
+            '<polyline class="constellation-echo" points="' + echoPoints + '"></polyline>' +
+            connections +
+            stars +
+            '<circle class="constellation-echo" cx="120" cy="110" r="' + (82 + spriteIndex % 4 * 4) + '"></circle>' +
+            '</svg>';
+        }
+
+        function createSprites() {
+          var count = window.matchMedia("(max-width: 520px)").matches ? 36 : 48;
+          var fragment = document.createDocumentFragment();
+          for (var i = 0; i < count; i += 1) {
+            var month = months[i % months.length];
+            var element = document.createElement("div");
+            element.className = "constellation";
+            element.dataset.month = String(i % months.length);
+            element.dataset.t = String(i / count);
+            element.innerHTML = makeConstellationSvg(month, i);
+            fragment.appendChild(element);
+            sprites.push({
+              element: element,
+              monthIndex: i % months.length,
+              t: i / count
+            });
+          }
+          layer.appendChild(fragment);
+        }
+
+        function pathPoint(t, selectedVariant) {
+          var a = ((t % 1) + 1) % 1 * TAU;
+          if (selectedVariant === "b") {
+            return {
+              x: Math.cos(a) * 4.65,
+              y: Math.sin(a) * 4.05,
+              z: Math.sin(a * 2) * 0.95
+            };
+          }
+          if (selectedVariant === "c") {
+            return {
+              x: Math.sin(a * 2) * 3.85,
+              y: Math.sin(a) * 4.75,
+              z: Math.cos(a * 3) * 0.62
+            };
+          }
+          return {
+            x: Math.cos(a) * 3.7 + Math.cos(a * 3) * 1.2,
+            y: Math.sin(a * 2) * 3.75,
+            z: Math.sin(a * 3) * 1.18
+          };
+        }
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function wrappedProgress(value) {
+          return ((value % 1) + 1) % 1;
+        }
+
+        function markMoved() {
+          if (hasMoved) return;
+          hasMoved = true;
+          frame.classList.add("has-moved");
+        }
+
+        function updateFocusedMonth(monthIndex) {
+          if (focusedMonth === monthIndex && document.getElementById("focus-name").textContent) return;
+          focusedMonth = monthIndex;
+          var month = months[monthIndex];
+          document.getElementById("focus-name").textContent = month.name;
+          document.getElementById("focus-hebrew").textContent = month.hebrew;
+          document.getElementById("focus-sign").textContent = month.sign + " · " + month.glyph;
+          document.getElementById("focus-letter").textContent = "Letter " + month.letterName;
+          document.getElementById("edge-count").textContent = String(monthIndex + 1).padStart(2, "0") + " / 12";
+          focusCard.setAttribute("aria-label", "Open " + month.name + " season preview");
+        }
+
+        function updateDrawer() {
+          var month = months[focusedMonth];
+          document.getElementById("drawer-name").textContent = month.name;
+          document.getElementById("drawer-hebrew").textContent = month.hebrew;
+          document.getElementById("drawer-sign").textContent = month.sign + " · " + month.glyph + " · Letter " + month.letterName;
+          document.getElementById("drawer-energy").textContent = month.energy;
+          document.getElementById("drawer-ritual").textContent = month.ritual;
+          document.getElementById("drawer-letter-name").textContent = "The month is formed through " + month.letterName;
+          document.getElementById("drawer-letter-glyph").textContent = month.letter;
+        }
+
+        function openDrawer() {
+          updateDrawer();
+          drawer.classList.add("open");
+          drawerScrim.classList.add("visible");
+          drawerClose.focus();
+        }
+
+        function closeDrawer() {
+          drawer.classList.remove("open");
+          drawerScrim.classList.remove("visible");
+          focusCard.focus();
+        }
+
+        function render() {
+          var width = frame.clientWidth;
+          var height = frame.clientHeight;
+          var settings = variantSettings[variant];
+          var camera = pathPoint(wrappedProgress(currentProgress), variant);
+          var minDistance = Infinity;
+          var minIndex = -1;
+
+          sprites.forEach(function (sprite, index) {
+            var point = pathPoint(sprite.t, variant);
+            var dx = point.x - camera.x;
+            var dy = point.y - camera.y;
+            var dz = point.z - camera.z;
+            var distance = Math.sqrt(dx * dx + dy * dy);
+            var depth = clamp(1 - dz * 0.055, 0.72, 1.22);
+            var x = width * 0.5 + dx * width * settings.worldScaleX * depth;
+            var y = height * 0.49 - dy * height * settings.worldScaleY * depth;
+            var focus = clamp(1 - distance / settings.focusDistance, 0, 1);
+            var scale = settings.baseScale + Math.pow(focus, 3) * settings.focusScale;
+            var edgeFade = clamp(1 - distance / settings.opacityDistance, 0, 1);
+            var viewportFade = x < -80 || x > width + 80 || y < 10 || y > height - 20 ? 0.12 : 1;
+            var opacity = clamp((0.08 + edgeFade * 0.86) * viewportFade, 0, 1);
+            var blur = variant === "c" ? 0 : clamp(distance - 4.5, 0, 4) * 0.5;
+
+            sprite.element.style.opacity = opacity.toFixed(3);
+            sprite.element.style.zIndex = String(Math.round(scale * 100));
+            sprite.element.style.filter = blur > 0.2 ? "blur(" + blur.toFixed(2) + "px)" : "";
+            sprite.element.style.transform = "translate3d(" + x.toFixed(2) + "px," + y.toFixed(2) + "px,0) translate(-50%,-50%) scale(" + scale.toFixed(3) + ")";
+
+            if (distance < minDistance) {
+              minDistance = distance;
+              minIndex = index;
+            }
+          });
+
+          if (minIndex !== focusedSprite) {
+            if (focusedSprite >= 0 && sprites[focusedSprite]) {
+              sprites[focusedSprite].element.classList.remove("focused");
+            }
+            focusedSprite = minIndex;
+            if (focusedSprite >= 0) {
+              sprites[focusedSprite].element.classList.add("focused");
+              updateFocusedMonth(sprites[focusedSprite].monthIndex);
+            }
+          }
+        }
+
+        function animate(now) {
+          var delta = Math.min((now - lastTime) / 1000, 0.05);
+          lastTime = now;
+          if (autoScroll && !reducedMotion && !drawer.classList.contains("open")) {
+            targetProgress += delta * 0.025;
+            markMoved();
+          }
+          var ease = reducedMotion ? 1 : 1 - Math.pow(0.0005, delta);
+          currentProgress += (targetProgress - currentProgress) * ease;
+          render();
+          requestAnimationFrame(animate);
+        }
+
+        function nudge(direction) {
+          targetProgress += direction * (1 / sprites.length);
+          markMoved();
+        }
+
+        stage.addEventListener("wheel", function (event) {
+          if (drawer.classList.contains("open")) return;
+          event.preventDefault();
+          targetProgress += (event.deltaY + event.deltaX * 0.45) * 0.00012;
+          markMoved();
+        }, { passive: false });
+
+        stage.addEventListener("pointerdown", function (event) {
+          if (drawer.classList.contains("open")) return;
+          isDragging = true;
+          dragVelocity = 0;
+          previousPointer.x = event.clientX;
+          previousPointer.y = event.clientY;
+          stage.classList.add("dragging");
+          stage.setPointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointermove", function (event) {
+          if (!isDragging) return;
+          var dx = event.clientX - previousPointer.x;
+          var dy = event.clientY - previousPointer.y;
+          dragVelocity = (dy + dx * 0.7) * 0.00105;
+          targetProgress -= dragVelocity;
+          previousPointer.x = event.clientX;
+          previousPointer.y = event.clientY;
+          markMoved();
+        });
+
+        function endDrag(event) {
+          if (!isDragging) return;
+          isDragging = false;
+          targetProgress -= dragVelocity * 3.5;
+          stage.classList.remove("dragging");
+          if (event && stage.hasPointerCapture(event.pointerId)) {
+            stage.releasePointerCapture(event.pointerId);
+          }
+        }
+
+        stage.addEventListener("pointerup", endDrag);
+        stage.addEventListener("pointercancel", endDrag);
+
+        stage.addEventListener("keydown", function (event) {
+          if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+            event.preventDefault();
+            nudge(1);
+          }
+          if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+            event.preventDefault();
+            nudge(-1);
+          }
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openDrawer();
+          }
+        });
+
+        document.getElementById("previous-month").addEventListener("click", function () {
+          nudge(-1);
+        });
+
+        document.getElementById("next-month").addEventListener("click", function () {
+          nudge(1);
+        });
+
+        autoToggle.addEventListener("click", function () {
+          autoScroll = !autoScroll;
+          autoToggle.classList.toggle("active", autoScroll);
+          autoToggle.setAttribute("aria-pressed", String(autoScroll));
+          autoToggle.textContent = autoScroll ? "Auto · on" : "Auto · off";
+          if (autoScroll) markMoved();
+        });
+
+        focusCard.addEventListener("click", openDrawer);
+        drawerClose.addEventListener("click", closeDrawer);
+        drawerScrim.addEventListener("click", closeDrawer);
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && drawer.classList.contains("open")) {
+            closeDrawer();
+          }
+        });
+
+        document.querySelectorAll("[data-variant-target]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            variant = button.dataset.variantTarget;
+            document.body.dataset.variant = variant;
+            document.querySelectorAll("[data-variant-target]").forEach(function (item) {
+              item.classList.toggle("active", item === button);
+            });
+            document.getElementById("variant-caption").textContent = variantSettings[variant].caption;
+            targetProgress += 0.0001;
+            markMoved();
+          });
+        });
+
+        document.getElementById("theme-switcher").addEventListener("change", function (event) {
+          document.getElementById("theme-link").href = "../themes/" + event.target.value + ".css";
+        });
+
+        document.querySelectorAll("[data-viewport]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var value = button.dataset.viewport;
+            var shell = document.getElementById("preview-shell");
+            shell.style.width = value === "full" ? "100%" : Math.min(Number(value), window.innerWidth) + "px";
+            shell.style.boxShadow = value === "full" ? "none" : "0 0 0 1px rgba(255,255,255,.13), 0 24px 80px rgba(0,0,0,.55)";
+          });
+        });
+
+        var tools = document.getElementById("sketch-tools");
+        document.getElementById("tool-menu").addEventListener("click", function () {
+          tools.classList.toggle("open");
+        });
+
+        var annotationTip = document.getElementById("annotation-tip");
+        document.getElementById("annotation-toggle").addEventListener("click", function (event) {
+          annotationMode = !annotationMode;
+          document.body.classList.toggle("annotating", annotationMode);
+          event.currentTarget.setAttribute("aria-pressed", String(annotationMode));
+          event.currentTarget.textContent = annotationMode ? "Done" : "Inspect";
+          if (!annotationMode) annotationTip.style.display = "none";
+        });
+
+        document.addEventListener("pointermove", function (event) {
+          if (!annotationMode || event.target.closest("#sketch-tools")) return;
+          var target = event.target;
+          var style = getComputedStyle(target);
+          annotationTip.style.display = "block";
+          annotationTip.style.left = Math.min(event.clientX + 12, window.innerWidth - 240) + "px";
+          annotationTip.style.top = Math.min(event.clientY + 12, window.innerHeight - 80) + "px";
+          annotationTip.textContent = target.tagName.toLowerCase() + (target.className ? "." + String(target.className).split(" ").join(".") : "") +
+            " · " + style.fontSize + " · " + style.color + " · p " + style.padding;
+        });
+
+        window.addEventListener("resize", render);
+
+        createSprites();
+        updateFocusedMonth(6);
+        updateDrawer();
+        render();
+        requestAnimationFrame(animate);
+      })();
+    </script>
+  </body>
+</html>

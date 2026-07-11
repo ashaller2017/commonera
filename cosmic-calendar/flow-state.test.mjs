@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import {
   createInitialFlow,
+  formatBirthdayFieldValue,
   transitionFlow,
   visibleLandmarksForFlow,
 } from "./build/flow-test/flow.js";
@@ -13,6 +14,7 @@ import {
   scrollToLandmarkUnlessReducedMotion,
 } from "./build/flow-test/App.js";
 import {
+  buildPersonalThread,
   createStoredBirthProfile,
   getCurrentSeason,
   MONTH_ENTRIES,
@@ -23,6 +25,19 @@ function advanceToBirthday() {
   const zodiacTransition = transitionFlow(welcome, { type: "advance" });
   return transitionFlow(zodiacTransition, { type: "advance" });
 }
+
+test("birthday entry inserts date slashes while typing and pasting", () => {
+  assert.equal(formatBirthdayFieldValue(""), "");
+  assert.equal(formatBirthdayFieldValue("1"), "1");
+  assert.equal(formatBirthdayFieldValue("12", "1"), "12/");
+  assert.equal(formatBirthdayFieldValue("123"), "12/3");
+  assert.equal(formatBirthdayFieldValue("1234", "12/3"), "12/34/");
+  assert.equal(formatBirthdayFieldValue("12345"), "12/34/5");
+  assert.equal(formatBirthdayFieldValue("12-34-1998"), "12/34/1998");
+  assert.equal(formatBirthdayFieldValue("123456789"), "12/34/5678");
+  assert.equal(formatBirthdayFieldValue("12", "12/"), "12");
+  assert.equal(formatBirthdayFieldValue("12/34", "12/34/"), "12/34");
+});
 
 test("initial flow advances through the zodiac transition to birthday entry", () => {
   const welcome = createInitialFlow();
@@ -98,12 +113,10 @@ const renderFlow = (state, welcomeLine = 0) =>
     }),
   );
 
-test("welcome renders the approved four-page sequence", () => {
+test("welcome renders the approved two-page sequence", () => {
   const pages = [
-    ["Where were you", "when the universe began?"],
-    ["Some part of you", "was already on its way."],
-    ["Through stars.", "Through seasons.", "Through those who came before you."],
-    ["And even then,", "the heavens knew your name.", "Welcome."],
+    ["When the universe began,", "some part of you", "was already on its way."],
+    ["Long before you were born,", "the heavens knew your name."],
   ];
 
   pages.forEach((page, index) => {
@@ -152,7 +165,10 @@ test("birthday path renders personal before month and upcoming", () => {
     type: "submit-birthday",
     value: "07/10/1998",
   });
+  const profile = createStoredBirthProfile("07/10/1998", "Mara");
   const markup = renderFlow(state);
+
+  assert.ok(profile);
 
   const personal = markup.indexOf('data-landmark="personal"');
   const month = markup.indexOf('data-landmark="month"');
@@ -162,7 +178,45 @@ test("birthday path renders personal before month and upcoming", () => {
   assert.ok(personal < month);
   assert.ok(month < upcoming);
   assert.match(markup, /id="personal-title" class="personal-name">Mara<\/h1>/);
+  const birthMonth = MONTH_ENTRIES[profile.derived.hebrewDate.monthKey];
+  const personalMarkup = markup.slice(personal, month);
+  assert.match(
+    personalMarkup,
+    new RegExp(`<span>${birthMonth.correspondence.mazal.zodiacLabel}<\\/span>`),
+  );
+  const personalThread = buildPersonalThread(profile);
+  assert.match(personalThread, /^The season of your birth /);
+  assert.equal(
+    personalThread.includes(birthMonth.correspondence.mazal.zodiacLabel),
+    false,
+  );
+  assert.match(
+    personalMarkup,
+    new RegExp(
+      `${birthMonth.correspondence.names.english} asks: ${birthMonth.reading.witnessingQuestion}`,
+    ),
+  );
+  assert.equal(
+    (personalMarkup.match(
+      new RegExp(birthMonth.correspondence.names.english, "g"),
+    ) ?? []).length,
+    1,
+  );
+  assert.equal(markup.includes(profile.derived.hebrewDate.displayLabel), false);
+  assert.equal(markup.includes(profile.derived.hebrewDate.hebrewDisplay), false);
   assert.doesNotMatch(markup, /Personal Thread/);
+});
+
+test("Tevet saves its voice for the closing question", () => {
+  assert.match(
+    MONTH_ENTRIES.tevet.reading.reading,
+    /^Endurance can carry us through the dark/,
+  );
+  assert.equal(MONTH_ENTRIES.tevet.reading.reading.includes("Tevet asks"), false);
+  assert.equal(
+    MONTH_ENTRIES.tevet.reading.witnessingQuestion,
+    "What deserves your discipline rather than your force?",
+  );
 });
 
 test("birthday and month compositions render real visual assets", () => {

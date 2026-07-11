@@ -1,0 +1,43 @@
+:root {
+  --color-bg: #0f2160;
+  --color-bg-deep: #07113a;
+  --color-surface: rgba(10, 25, 76, 0.76);
+  --color-border: rgba(243, 241, 237, 0.24);
+  --color-text: #f3f1ed;
+  --color-text-muted: #aeb8dc;
+  --color-primary: #f3f1ed;
+  --color-primary-hover: #ffffff;
+  --color-accent: #d6b36a;
+  --color-danger: #d8846f;
+  --color-success: #a8c5ac;
+
+  --font-display: "Iowan Old Style", "Baskerville", "Times New Roman", serif;
+  --font-sans: "Helvetica Neue", "Avenir Next", Arial, sans-serif;
+  --font-hebrew: "Frank Ruhl Libre", "Noto Serif Hebrew", "Times New Roman", serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+
+  --text-xs: 0.68rem;
+  --text-sm: 0.8rem;
+  --text-base: 1rem;
+  --text-lg: 1.18rem;
+  --text-xl: 1.45rem;
+  --text-2xl: 2rem;
+  --text-3xl: clamp(2.7rem, 11vw, 6.5rem);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  --radius-sm: 3px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 8px rgba(1, 5, 25, 0.24);
+  --shadow-md: 0 12px 36px rgba(1, 5, 25, 0.35);
+  --shadow-lg: 0 26px 80px rgba(1, 5, 25, 0.48);
+}

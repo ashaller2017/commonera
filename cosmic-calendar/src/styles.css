@@ -491,7 +491,7 @@ h1 {
   mix-blend-mode: multiply;
 }
 
-.hero-glyph-art + .eyebrow {
+.hero-glyph-art + .personal-name {
   position: relative;
   z-index: 2;
   margin-top: 14px;

@@ -14,6 +14,7 @@ import {
 } from "./content.js";
 import {
   createInitialFlow,
+  formatBirthdayFieldValue,
   FlowAction,
   FlowLandmark,
   FlowState,
@@ -59,10 +60,8 @@ const lalouGlyphUrls: Record<MonthKey, string> = {
 };
 
 const welcomeLines = [
-  ["Where were you", "when the universe began?"],
-  ["Some part of you", "was already on its way."],
-  ["Through stars.", "Through seasons.", "Through those who came before you."],
-  ["And even then,", "the heavens knew your name.", "Welcome."],
+  ["When the universe began,", "some part of you", "was already on its way."],
+  ["Long before you were born,", "the heavens knew your name."],
 ] as const;
 
 export function easeInOutCubic(progress: number): number {
@@ -238,7 +237,7 @@ function WelcomeScreen({
   exiting: boolean;
   onAdvance: () => void;
 }) {
-  const lines = welcomeLines[line] ?? welcomeLines[3];
+  const lines = welcomeLines[line] ?? welcomeLines[1];
 
   return (
     <section
@@ -257,7 +256,7 @@ function WelcomeScreen({
           {lines.map((text, index) => (
             <span
               key={text}
-              className={`welcome-line-part${text === "Welcome." ? " welcome-line-part--stanza" : ""}`}
+              className="welcome-line-part"
               style={{ animationDelay: `${index * welcomeLineStagger}ms` }}
             >
               {text}
@@ -355,6 +354,7 @@ function BirthdayStep({
                 type="text"
                 inputMode="numeric"
                 autoComplete="bday"
+                maxLength={10}
                 placeholder="MM/DD/YYYY"
                 value={birthdayValue}
                 aria-describedby={birthdayError ? "birthday-error" : "birthday-hint"}
@@ -411,18 +411,13 @@ function PersonalPlaceholder({
         )}
         {profile && month ? (
           <>
-            <p className="eyebrow">{profile.derived.hebrewDate.displayLabel}</p>
             <h1 id="personal-title" className="personal-name">{displayName}</h1>
             <p className="profile-facts">
-              <span lang="he" dir="rtl">{profile.derived.hebrewDate.hebrewDisplay}</span>
-              <span>
-                {month.correspondence.mazal.zodiacLabel} · {month.correspondence.tribe} ·{" "}
-                {profile.derived.moon.label} · {month.correspondence.letter.name}
-              </span>
+              <span>{month.correspondence.mazal.zodiacLabel}</span>
             </p>
             <p>{buildPersonalThread(profile)}</p>
             <p className="return-question">
-              {month.reading.witnessingQuestion}
+              {month.correspondence.names.english} asks: {month.reading.witnessingQuestion}
             </p>
           </>
         ) : (
@@ -563,7 +558,7 @@ export default function App() {
       }
 
       const nextPage = welcomeLine + 1;
-      const nextPageLines = welcomeLines[nextPage] ?? welcomeLines[3];
+      const nextPageLines = welcomeLines[nextPage] ?? welcomeLines[1];
       const revealDuration =
         welcomeLineRevealDuration +
         (nextPageLines.length - 1) * welcomeLineStagger;
@@ -668,7 +663,9 @@ export default function App() {
         setNameValue(value);
         setNameError(null);
       }}
-      onBirthdayChange={setBirthdayValue}
+      onBirthdayChange={(value) => {
+        setBirthdayValue((current) => formatBirthdayFieldValue(value, current));
+      }}
       onBirthdaySubmit={submitBirthday}
       onSkip={() => applyAction({ type: "skip-to-month" })}
     />

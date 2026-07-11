@@ -292,7 +292,7 @@ export const MONTH_ENTRIES: Record<MonthKey, MonthEntry> = {
     {
       dramaTitle: "The Drama of Discernment",
       archetype: "Devotion in the Dark",
-      reading: "Tevet asks what commitment can hold when inspiration goes quiet. Contraction can become a boundary that protects what matters rather than a wall built from fear.",
+      reading: "Endurance can carry us through the dark, but it cannot tell us what is worth carrying. The deeper work is discernment: knowing when discipline protects what matters—and when it hardens into force.",
       ritual: "Choose one small daily practice for this week. Do it without waiting to feel motivated.",
       witnessingQuestion: "What deserves your discipline rather than your force?",
     },
@@ -444,7 +444,11 @@ export function getBirthMonthEntry(profile: StoredBirthProfileV1): MonthEntry {
 export function buildPersonalThread(profile: StoredBirthProfileV1): string {
   const entry = getBirthMonthEntry(profile);
   const { correspondence, reading } = entry;
-  return `You arrived through ${correspondence.names.english}, ${reading.dramaTitle.toLowerCase()}. Its faculty of ${correspondence.faculty.displayLabel.toLowerCase()} offers a lens—not a fixed identity—and your symbolic ${profile.derived.moon.label.toLowerCase()} gives this thread a tempo of ${profile.derived.moon.narrativeMode}.`;
+  const monthPrefix = `${correspondence.names.english} `;
+
+  return reading.reading.startsWith(monthPrefix)
+    ? `The season of your birth ${reading.reading.slice(monthPrefix.length)}`
+    : reading.reading;
 }
 
 export function formatBirthdayInput(civilDateISO: string): string {

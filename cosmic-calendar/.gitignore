@@ -10,5 +10,6 @@ build
 # Codex can regenerate them without creating git conflicts.
 .agents/
 AGENTS.md
+.worktrees/
 
 # GSD's gsd-install-state.json / gsd-file-manifest.json are intentionally tracked.
