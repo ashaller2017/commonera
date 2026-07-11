@@ -1,0 +1,15 @@
+# GSD tooling and planning artifacts — never serve as static assets.
+# Only relevant if the deploy platform serves the repo root (e.g. a Cloudflare
+# Worker with assets.directory "."). Harmless otherwise.
+.claude/
+.codex/
+.agents/
+.planning/
+CLAUDE.md
+AGENTS.md
+STATE.md
+VERSION
+gsd-file-manifest.json
+gsd-install-state.json
+Cosmic Calendar PRD __ COMMON ERA × VIBE CODING.md
+GSD-CODEX-SETUP-GUIDE.md
