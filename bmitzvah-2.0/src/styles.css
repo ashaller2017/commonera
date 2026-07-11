@@ -1,0 +1,241 @@
+@import "@fontsource-variable/nunito-sans";
+/* full.css carries the opsz/SOFT/WONK axes DESIGN.md names as the display
+ * voice; the default export is wght-only. */
+@import "@fontsource-variable/fraunces/full.css";
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * B'Mitzvah 2.0 theme, shadcn token structure. Light: summer-camp lake at
+ * golden hour on pure white. Dark: the same lake after dark, campfire gold
+ * and bright teal on deep blue-charcoal. Template identities keep one API in
+ * both modes: `base` carries white text, `soft` is a tinted panel, `deep` is
+ * readable text on soft.
+ */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.22 0.015 200);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.015 200);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.015 200);
+  --primary: oklch(0.52 0.11 180);
+  --primary-strong: oklch(0.44 0.1 180);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.965 0.01 180);
+  --secondary-foreground: oklch(0.3 0.05 190);
+  --muted: oklch(0.955 0.008 190);
+  --muted-foreground: oklch(0.45 0.02 200);
+  --accent: oklch(0.86 0.11 85);
+  --accent-foreground: oklch(0.3 0.05 75);
+  --accent-deep: oklch(0.46 0.09 75);
+  --destructive: oklch(0.55 0.19 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9 0.012 190);
+  --input: oklch(0.9 0.012 190);
+  --ring: oklch(0.52 0.11 180);
+  --radius: 1rem;
+
+  --sidebar: oklch(0.975 0.008 190);
+  --sidebar-foreground: oklch(0.22 0.015 200);
+  --sidebar-primary: oklch(0.52 0.11 180);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.93 0.015 185);
+  --sidebar-accent-foreground: oklch(0.3 0.05 190);
+  --sidebar-border: oklch(0.9 0.012 190);
+  --sidebar-ring: oklch(0.52 0.11 180);
+
+  /* Journey template identities. Hues: wild 150, real 355, diff 25, mind 265,
+   * roots 60, path 305. */
+  --wild-base: oklch(0.52 0.12 150);
+  --wild-soft: oklch(0.95 0.035 150);
+  --wild-deep: oklch(0.34 0.09 150);
+  --real-base: oklch(0.58 0.16 355);
+  --real-soft: oklch(0.95 0.03 355);
+  --real-deep: oklch(0.36 0.11 355);
+  --diff-base: oklch(0.55 0.16 25);
+  --diff-soft: oklch(0.95 0.03 25);
+  --diff-deep: oklch(0.36 0.1 25);
+  --mind-base: oklch(0.5 0.13 265);
+  --mind-soft: oklch(0.95 0.028 265);
+  --mind-deep: oklch(0.35 0.1 265);
+  --roots-base: oklch(0.58 0.12 60);
+  --roots-soft: oklch(0.95 0.035 75);
+  --roots-deep: oklch(0.38 0.08 60);
+  --path-base: oklch(0.54 0.14 305);
+  --path-soft: oklch(0.95 0.03 305);
+  --path-deep: oklch(0.36 0.1 305);
+}
+
+.dark {
+  --background: oklch(0.15 0.015 210);
+  --foreground: oklch(0.93 0.008 190);
+  --card: oklch(0.19 0.018 210);
+  --card-foreground: oklch(0.93 0.008 190);
+  --popover: oklch(0.19 0.018 210);
+  --popover-foreground: oklch(0.93 0.008 190);
+  --primary: oklch(0.75 0.1 180);
+  --primary-strong: oklch(0.82 0.1 180);
+  --primary-foreground: oklch(0.16 0.03 200);
+  --secondary: oklch(0.24 0.02 200);
+  --secondary-foreground: oklch(0.88 0.02 190);
+  --muted: oklch(0.23 0.015 210);
+  --muted-foreground: oklch(0.68 0.02 200);
+  --accent: oklch(0.3 0.06 80);
+  --accent-foreground: oklch(0.9 0.09 85);
+  --accent-deep: oklch(0.82 0.12 85);
+  --destructive: oklch(0.62 0.18 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.28 0.015 210);
+  --input: oklch(0.28 0.015 210);
+  --ring: oklch(0.75 0.1 180);
+
+  --sidebar: oklch(0.17 0.017 210);
+  --sidebar-foreground: oklch(0.93 0.008 190);
+  --sidebar-primary: oklch(0.75 0.1 180);
+  --sidebar-primary-foreground: oklch(0.16 0.03 200);
+  --sidebar-accent: oklch(0.25 0.02 205);
+  --sidebar-accent-foreground: oklch(0.93 0.008 190);
+  --sidebar-border: oklch(0.26 0.015 210);
+  --sidebar-ring: oklch(0.75 0.1 180);
+
+  --wild-base: oklch(0.6 0.12 150);
+  --wild-soft: oklch(0.26 0.05 150);
+  --wild-deep: oklch(0.88 0.07 150);
+  --real-base: oklch(0.64 0.15 355);
+  --real-soft: oklch(0.27 0.05 355);
+  --real-deep: oklch(0.89 0.06 355);
+  --diff-base: oklch(0.62 0.15 25);
+  --diff-soft: oklch(0.27 0.05 25);
+  --diff-deep: oklch(0.89 0.06 25);
+  --mind-base: oklch(0.62 0.12 265);
+  --mind-soft: oklch(0.26 0.05 265);
+  --mind-deep: oklch(0.88 0.06 265);
+  --roots-base: oklch(0.66 0.11 65);
+  --roots-soft: oklch(0.27 0.05 70);
+  --roots-deep: oklch(0.89 0.08 80);
+  --path-base: oklch(0.63 0.13 305);
+  --path-soft: oklch(0.27 0.05 305);
+  --path-deep: oklch(0.89 0.06 305);
+}
+
+@theme inline {
+  --font-sans: "Nunito Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-deep: var(--accent-deep);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-wild: var(--wild-base);
+  --color-wild-soft: var(--wild-soft);
+  --color-wild-deep: var(--wild-deep);
+  --color-real: var(--real-base);
+  --color-real-soft: var(--real-soft);
+  --color-real-deep: var(--real-deep);
+  --color-diff: var(--diff-base);
+  --color-diff-soft: var(--diff-soft);
+  --color-diff-deep: var(--diff-deep);
+  --color-mind: var(--mind-base);
+  --color-mind-soft: var(--mind-soft);
+  --color-mind-deep: var(--mind-deep);
+  --color-roots: var(--roots-base);
+  --color-roots-soft: var(--roots-soft);
+  --color-roots-deep: var(--roots-deep);
+  --color-path: var(--path-base);
+  --color-path-soft: var(--path-soft);
+  --color-path-deep: var(--path-deep);
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: oklch(0.86 0.11 85 / 0.6);
+  }
+
+  .dark ::selection {
+    background: oklch(0.5 0.09 85 / 0.7);
+  }
+}
+
+/* The playful display voice for kid-facing headline moments (quiz): Fraunces
+ * at large optical size with the soft and wonk axes engaged. Weight still
+ * comes from font-weight utilities. */
+@utility font-display-wonk {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 60,
+    "WONK" 1;
+}
+
+/* Safety net for any residual CSS-driven motion; primary motion runs through
+ * motion.dev with MotionConfig reducedMotion="user". */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,5 @@
+# Environment variables (applies to all projects in this repo)
+.env
+.env.*
+!.env.example
+!.env.*.example

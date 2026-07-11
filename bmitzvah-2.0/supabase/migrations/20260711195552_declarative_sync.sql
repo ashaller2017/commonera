@@ -1,0 +1,13 @@
+CREATE TABLE public.child_settings (child_id uuid NOT NULL, timeline text, comfort_level text, updated_at timestamp with time zone DEFAULT now() NOT NULL);
+ALTER TABLE public.child_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.child_settings ADD CONSTRAINT child_settings_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+ALTER TABLE public.child_settings ADD CONSTRAINT child_settings_comfort_level_fkey FOREIGN KEY (comfort_level) REFERENCES public.comfort_options(key);
+ALTER TABLE public.child_settings ADD CONSTRAINT child_settings_pkey PRIMARY KEY (child_id);
+ALTER TABLE public.child_settings ADD CONSTRAINT child_settings_timeline_fkey FOREIGN KEY (timeline) REFERENCES public.timeline_options(key);
+GRANT MAINTAIN, REFERENCES, TRIGGER, TRUNCATE ON public.child_settings TO anon;
+GRANT INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON public.child_settings TO authenticated;
+GRANT ALL ON public.child_settings TO service_role;
+CREATE POLICY child_settings_admin_read ON public.child_settings FOR SELECT TO authenticated USING (public.is_admin());
+CREATE POLICY child_settings_insert_parent ON public.child_settings FOR INSERT TO authenticated WITH CHECK (public.is_parent_of(child_id));
+CREATE POLICY child_settings_select_own_or_parent ON public.child_settings FOR SELECT TO authenticated USING (((child_id = ( SELECT auth.uid() AS uid)) OR public.is_parent_of(child_id)));
+CREATE POLICY child_settings_update_parent ON public.child_settings FOR UPDATE TO authenticated USING (public.is_parent_of(child_id)) WITH CHECK (public.is_parent_of(child_id));
