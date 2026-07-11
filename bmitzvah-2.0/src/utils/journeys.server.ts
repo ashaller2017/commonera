@@ -6,6 +6,7 @@ import { err, ok, type Result } from '@/lib/result'
 import type { Database } from '@/types/database'
 import { getCurrentUser } from '@/utils/auth.server'
 import { getQuizQuestions, getTemplateMilestones } from '@/utils/content.server'
+import { sendChildFinishedEmail, sendChildMilestoneEmail } from '@/utils/email.server'
 
 type Supabase = SupabaseClient<Database>
 
@@ -200,6 +201,14 @@ export async function setMilestoneStatus(
   milestoneId: string,
   status: MilestoneStatus,
 ): Promise<Result<null, MutationError>> {
+  // Prior status so we only email the parent on a genuine transition into "done", not on a
+  // re-save of an already-done milestone.
+  const { data: prior } = await supabase
+    .from('milestones')
+    .select('status')
+    .eq('id', milestoneId)
+    .maybeSingle()
+
   const { data, error } = await supabase
     .from('milestones')
     .update({ status })
@@ -209,7 +218,60 @@ export async function setMilestoneStatus(
     console.error('setMilestoneStatus failed', error)
     return err('write-failed')
   }
-  return data.length === 0 ? err('not-found') : ok(null)
+  if (data.length === 0) return err('not-found')
+
+  if (status === 'done' && prior?.status !== 'done') {
+    await notifyMilestoneDone(supabase, milestoneId)
+  }
+  return ok(null)
+}
+
+// Best-effort parent notification when a child marks a milestone done, with a bigger note when
+// that completes the whole journey. Never throws: a failed email must not fail the kid's action.
+// The parent's email is read via the parent_notification_email() SECURITY DEFINER RPC (the child
+// has no direct access to auth.users), so no service role is involved.
+async function notifyMilestoneDone(supabase: Supabase, milestoneId: string): Promise<void> {
+  try {
+    const { data: milestone } = await supabase
+      .from('milestones')
+      .select('title, journey_id')
+      .eq('id', milestoneId)
+      .maybeSingle()
+    if (!milestone) return
+
+    const { data: journey } = await supabase
+      .from('journeys')
+      .select('id, name, child_id')
+      .eq('id', milestone.journey_id)
+      .maybeSingle()
+    if (!journey) return
+
+    const [{ data: siblings }, { data: child }, { data: parentEmail }] = await Promise.all([
+      supabase.from('milestones').select('status').eq('journey_id', journey.id),
+      supabase.from('profiles').select('display_name').eq('id', journey.child_id).maybeSingle(),
+      supabase.rpc('parent_notification_email'),
+    ])
+    if (!parentEmail) return
+
+    const statuses = (siblings ?? []).map((m) => m.status)
+    const total = statuses.length
+    const done = statuses.filter((s) => s === 'done').length
+    const childName = child?.display_name ?? 'Your kid'
+    const shared = { childName, journeyName: journey.name, childId: journey.child_id }
+
+    if (total > 0 && done === total) {
+      await sendChildFinishedEmail(parentEmail, shared)
+    } else {
+      await sendChildMilestoneEmail(parentEmail, {
+        ...shared,
+        milestoneTitle: milestone.title,
+        done,
+        total,
+      })
+    }
+  } catch (err) {
+    console.error('notifyMilestoneDone failed', err)
+  }
 }
 
 export type AddActivityInput = {

@@ -164,7 +164,7 @@ export async function resetChildPassword(
     .select('id, role, parent_id')
     .eq('id', childId)
     .maybeSingle()
-  if (!child || child.role !== 'child' || child.parent_id !== parent.id) {
+  if (child?.role !== 'child' || child.parent_id !== parent.id) {
     return err('not-your-child')
   }
 

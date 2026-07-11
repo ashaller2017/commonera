@@ -99,3 +99,19 @@ as $$
       and p.role = 'child'
   );
 $$;
+
+-- The current child's parent's email, used to send parents progress notifications. SECURITY
+-- DEFINER so it can read auth.users; scoped to the caller's own parent so a child can only ever
+-- reach their own parent's address, nobody else's.
+create function public.parent_notification_email()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select u.email
+  from public.profiles me
+  join auth.users u on u.id = me.parent_id
+  where me.id = (select auth.uid());
+$$;

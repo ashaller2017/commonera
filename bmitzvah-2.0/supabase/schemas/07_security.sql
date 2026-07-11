@@ -32,6 +32,9 @@ revoke all on function public.is_child() from public;
 grant execute on function public.is_parent() to authenticated;
 grant execute on function public.is_child() to authenticated;
 
+revoke all on function public.parent_notification_email() from public;
+grant execute on function public.parent_notification_email() to authenticated;
+
 -- ---------------------------------------------------------------------------
 -- Reference catalog: read-only public content. RLS on, select granted to the
 -- Data API roles, a single permissive read policy, and no write grants.

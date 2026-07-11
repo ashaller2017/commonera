@@ -20,10 +20,7 @@ async function deliver(args: {
 }): Promise<void> {
   const { to, subject, element, devLink } = args
   try {
-    const [html, text] = await Promise.all([
-      render(element),
-      render(element, { plainText: true }),
-    ])
+    const [html, text] = await Promise.all([render(element), render(element, { plainText: true })])
     if (!resend) {
       console.info(
         `[email] dev (not sent) to=${to} subject=${JSON.stringify(subject)}${
@@ -62,7 +59,14 @@ export async function sendPasswordResetEmail(
 
 export async function sendChildMilestoneEmail(
   to: string,
-  args: { childName: string; journeyName: string; childId: string; milestoneTitle: string; done: number; total: number },
+  args: {
+    childName: string
+    journeyName: string
+    childId: string
+    milestoneTitle: string
+    done: number
+    total: number
+  },
 ): Promise<void> {
   await deliver({
     to,

@@ -682,6 +682,7 @@ export type Database = {
       is_parent: { Args: never; Returns: boolean }
       is_parent_of: { Args: { child: string }; Returns: boolean }
       owns_journey: { Args: { jid: string }; Returns: boolean }
+      parent_notification_email: { Args: never; Returns: string }
     }
     Enums: {
       activity_kind: "do" | "create" | "learn" | "give"
